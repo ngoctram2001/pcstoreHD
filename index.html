@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCStore Perth – TrangHuynhDuc</title>
+<meta name="description" content="Hand-built custom PCs in Perth, WA. Gaming, office, and editing builds — tested before sale, local pickup, 3–12 month warranty.">
+<meta property="og:title" content="PCStore Perth – TrangHuynhDuc">
+<meta property="og:description" content="Hand-built custom PCs in Perth, WA. Tested before sale, local pickup, warranty included.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pcstoreperth.com/">
+<meta property="og:image" content="https://pcstoreperth.com/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PCStore Perth – Custom PCs">
+<meta name="twitter:description" content="Hand-built custom PCs in Perth, WA. Tested before sale, local pickup, warranty included.">
+<meta name="twitter:image" content="https://pcstoreperth.com/og-image.jpg">
+<link rel="canonical" href="https://pcstoreperth.com/">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-156L86KK58"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-156L86KK58');
+</script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
+    PC<span>Store</span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link active" href="index.html">All Products</a>
+    <a class="nav-link" href="specials.html">Specials and Promotions</a>
+    <a class="nav-link" href="info.html">Build Guide</a>
+    <a class="nav-link" href="contact.html">Contact Us</a>
+  
+  </div>
+  <button class="nav-toggle" id="nav-toggle">☰</button>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="hero-eyebrow">Custom Built PCs · Perth, WA</div>
+    <h1>Solid builds,<br><em>fair prices, real parts</em></h1>
+    <p>Every PC is hand-built and tested before it's listed. Pick it up locally and check it over before you take it home.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">✅ Tested before sale</span>
+      <span class="hero-tag">📍 Local pickup, Perth</span>
+      <span class="hero-tag">🛡️ 3–12 month warranty</span>
+      <span class="hero-tag">📧 duchuynhtrang@gmail.com</span>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <img src="https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800&q=80" alt="PC Gaming Setup">
+    <div class="hero-badge">🔥 <span id="hero-count">—</span> builds available now</div>
+  </div>
+</section>
+
+<section class="section-wrap" id="products">
+  <div class="section-title">Available Builds</div>
+  <div class="section-sub">Filter by status to see what's available, reserved, or already sold</div>
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-status="all">All</button>
+    <button class="filter-btn" data-status="available"><span class="filter-dot" style="background:var(--green)"></span>Available</button>
+    <button class="filter-btn" data-status="reserved"><span class="filter-dot" style="background:var(--yellow)"></span>Reserved</button>
+    <button class="filter-btn" data-status="sold"><span class="filter-dot" style="background:var(--red)"></span>Sold</button>
+    <select id="price-filter" class="price-filter-select">
+      <option value="all">All prices</option>
+      <option value="0-500">Under $500</option>
+      <option value="500-1000">$500 – $1000</option>
+      <option value="1000-2000">$1000 – $2000</option>
+      <option value="2000-99999">$2000+</option>
+    </select>
+  </div>
+  <div id="products-grid" class="grid">
+    <div class="loading"><div class="spinner"></div>Loading builds...</div>
+  </div>
+</section>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:600">Product Details</span>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div id="modal-img-wrap"></div>
+    <div class="modal-body">
+      <div class="modal-status-row" id="modal-status"></div>
+      <div class="modal-category" id="modal-cat"></div>
+      <div class="modal-name" id="modal-name"></div>
+      <div class="modal-price" id="modal-price"></div>
+      <div class="modal-warranty" id="modal-warranty">🛡️ Warranty included</div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="specs-title">Specifications</div>
+      <div class="specs-box" id="modal-specs">—</div>
+      <button class="secondary-btn" id="modal-share-btn" style="margin-bottom:10px">🔗 Share this build</button>
+      <button class="primary-btn" id="modal-order-btn">📝 Order this build</button>
+      <div class="unavailable-note hidden" id="modal-unavailable">This build is no longer available to order</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:600">Order Build</span>
+      <button class="modal-close" onclick="closeModal('booking-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="booking-form-view">
+        <div class="order-product-preview" id="booking-product-preview"></div>
+        <div class="form-group">
+          <label>Full name *</label>
+          <input type="text" id="b-name" placeholder="John Smith">
+        </div>
+        <div class="form-group" id="phone-group">
+          <label>Phone number *</label>
+          <input type="text" id="b-phone" placeholder="04XX XXX XXX or +84 9XX XXX XXX">
+          <div class="field-error" id="phone-error">Please enter a valid AU or VN phone number</div>
+        </div>
+        <div class="form-group">
+          <label>Pickup date *</label>
+          <input type="date" id="b-date">
+        </div>
+        <div class="form-group">
+          <label>Pickup time *</label>
+          <select id="b-time"><option value="">-- Select a date first --</option></select>
+        </div>
+        <div class="pickup-note">⏰ Note: Mon–Fri pickup is only available after 5:00pm. Sat & Sun pickup is available anytime (8am–8pm).</div>
+        <button class="submit-btn" id="booking-submit-btn">Send order request</button>
+      </div>
+      <div id="booking-success-view" class="success-box hidden">
+        <div class="success-icon">✅</div>
+        <h3>Order request received!</h3>
+        <p>This build has been reserved for you.</p>
+        <div class="success-note">💬 Please message us on Messenger to confirm your pickup address — we'll send you the exact location there.</div>
+        <a class="primary-btn" id="booking-messenger-btn" href="#" target="_blank">💬 Open Messenger to confirm</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEWS SECTION -->
+<section class="reviews-section" id="reviews">
+  <div class="reviews-header">
+    <div>
+      <div class="section-title">Customer Reviews</div>
+      <div class="section-sub">What people say about our builds</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div class="reviews-avg">
+        <div class="reviews-avg-num" id="avg-rating">—</div>
+        <div>
+          <div class="reviews-avg-stars" id="avg-stars">☆☆☆☆☆</div>
+          <div class="reviews-avg-count" id="avg-count">No reviews yet</div>
+        </div>
+      </div>
+      <button class="write-review-btn" onclick="openReviewModal()">✍️ Write a review</button>
+    </div>
+  </div>
+  <div class="reviews-grid" id="reviews-grid">
+    <div class="reviews-empty">No reviews yet — be the first!</div>
+  </div>
+</section>
+
+<!-- WRITE REVIEW MODAL -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:600">Write a Review</span>
+      <button class="modal-close" onclick="closeModal('review-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Your name *</label>
+        <input type="text" id="rv-name" placeholder="e.g. John S.">
+      </div>
+
+ <!-- co edit -->      
+    <div class="form-group">
+     <label>Which product did you buy?</label>
+     <select id="rv-product">
+       <option value="">-- Chọn sản phẩm bạn đã mua --</option>
+     </select>
+    </div>    
+
+      <div class="form-group">
+        <label>Rating *</label>
+        <div class="star-picker" id="star-picker">
+          <span data-val="1">⭐</span>
+          <span data-val="2">⭐</span>
+          <span data-val="3">⭐</span>
+          <span data-val="4">⭐</span>
+          <span data-val="5">⭐</span>
+        </div>
+        <div class="star-hint" id="star-hint">Tap a star to rate</div>
+      </div>
+      <div class="form-group">
+        <label>Your review *</label>
+        <textarea id="rv-comment" placeholder="Tell us about your experience..."></textarea>
+      </div>
+      <button class="submit-btn" id="rv-submit">Submit review</button>
+    </div>
+  </div>
+</div>
+
+<a class="floating-messenger" id="floating-messenger-btn" href="#" target="_blank">
+  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.1 0 0 7.4 0 16.6c0 5.2 2.6 9.9 6.7 12.9V36l6.1-3.4c1.6.5 3.4.7 5.2.7 9.9 0 18-7.4 18-16.6S27.9 0 18 0z" fill="#fff"/><path d="M8.2 21.9 14.6 15l5.5 4.2L26.9 11l-6.4 6.9-5.5-4.2-7 8.2z" fill="#0066ff"/></svg>
+</a>
+
+<div class="toast" id="toast">✅ Success!</div>
+
+<footer>
+  <div>© 2025 PCStore Perth · Custom built PCs, hand-tested</div>
+  <div style="margin-top:8px">All orders confirmed via <strong>Messenger</strong> · <a href="contact.html">Contact us</a> · <a href="privacy.html">Privacy &amp; Terms</a></div>
+</footer>
+
+<script type="module" src="shop.js"></script>
+</body>
+</html>

@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – PCStore Perth</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0ebe4; --surface: #faf7f4; --surface2: #ede8e1;
+    --border: #d8cfc4; --accent: #e8491e; --accent2: #ff8c42;
+    --text: #2c1f14; --muted: #8a7060; --green: #1e8a5a;
+    --red: #d63030; --orange: #c97a10; --radius: 12px;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* LOGIN */
+  #login-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(232,73,30,.10) 0%, transparent 70%);
+  }
+  .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+  .login-logo { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .login-logo span { color: var(--accent); }
+  .login-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+  .form-group input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: inherit;
+    transition: border-color .2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--accent); }
+  .login-btn {
+    width: 100%; padding: 14px; border-radius: 10px; background: var(--accent);
+    color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer; margin-top: 8px;
+    transition: opacity .2s;
+  }
+  .login-btn:hover { opacity: .85; }
+  .login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; }
+
+  /* ADMIN LAYOUT */
+  #admin-page { display: none; }
+  .admin-nav {
+    background: linear-gradient(135deg, #2c1f14 0%, #4a2e1a 60%, #e8491e22 100%);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,.18);
+  }
+  .admin-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #fff; letter-spacing: .5px; }
+  .admin-logo span { color: #ff7043; }
+  .admin-badge { background: rgba(255,112,67,.2); color: #ff8a65; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(255,112,67,.35); font-weight: 600; }
+  .logout-btn { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.7); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .logout-btn:hover { background: rgba(255,80,50,.2); border-color: rgba(255,80,50,.4); color: #fff; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; padding: 20px 24px 0; border-bottom: 1px solid var(--border); max-width: 1200px; margin: 0 auto; overflow-x: auto; }
+  .tab-badge { display:inline-flex!important; align-items:center; justify-content:center; background:var(--accent); color:#fff; font-size:11px; font-weight:700; border-radius:99px; padding:1px 6px; margin-left:5px; min-width:18px; line-height:1.4; }
+
+  /* Overview product grid */
+  .ov-filter-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:6px 14px; border-radius:99px; font-size:13px; cursor:pointer; transition:all .2s; }
+  .ov-filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .ov-filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .ov-filter-btn span { font-weight:700; }
+  .ov-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:border-color .2s; }
+  .ov-card:hover { border-color:var(--accent); }
+  .ov-card-img { width:100%; aspect-ratio:4/3; object-fit:cover; background:var(--surface2); display:block; }
+  .ov-card-img-fallback { width:100%; aspect-ratio:4/3; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:36px; }
+  .ov-card-body { padding:10px 12px 12px; }
+  .ov-card-name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+  .ov-card-price { font-size:13px; color:var(--accent); font-weight:700; margin-bottom:6px; }
+  .ov-card-status { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; }
+  .ov-card-status.available { background:#1a3a2a; color:#4caf93; }
+  .ov-card-status.reserved  { background:#3a2e1a; color:#e0a84a; }
+  .ov-card-status.sold      { background:#3a1a1a; color:#e05a4a; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .stat-card-num { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; }
+  .stat-card-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .stat-card.accent .stat-card-num { color: var(--accent); }
+  .stat-card.green .stat-card-num { color: var(--green); }
+  .stat-card.orange .stat-card-num { color: var(--orange); }
+
+  /* SECTION HEADER */
+  .section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-hdr h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+  .add-btn { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+  .add-btn:hover { opacity: .85; }
+
+  /* TABLE */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--surface2); padding: 12px 16px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td { padding: 14px 16px; border-top: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .td-name { font-weight: 500; max-width: 200px; }
+  .td-price { color: var(--accent); font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+  .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .edit-btn { background: rgba(255,87,34,.1); border: 1px solid rgba(255,87,34,.3); color: var(--accent); padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: background .2s; }
+  .edit-btn:hover { background: rgba(255,87,34,.2); }
+  .del-btn { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: var(--red); padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: background .2s; }
+  .del-btn:hover { background: rgba(239,68,68,.2); }
+
+  /* STATUS BADGE */
+  .status { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .status.pending { background: rgba(245,158,11,.1); color: var(--orange); }
+  .status.confirmed { background: rgba(34,197,94,.1); color: var(--green); }
+  .status.done { background: rgba(255,87,34,.1); color: var(--accent); }
+  .status.available { background: rgba(34,197,94,.1); color: var(--green); }
+  .status.reserved { background: rgba(245,158,11,.1); color: var(--orange); }
+  .status.sold { background: rgba(239,68,68,.1); color: var(--red); }
+  .status.cancelled { background: rgba(100,100,100,.15); color: #888; text-decoration: line-through; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; max-width: 560px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; background: var(--surface); z-index: 1; }
+  .modal-header h3 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+  .modal-close { background: var(--surface2); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; }
+  .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--surface); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px; }
+  .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  .save-btn { width: 100%; padding: 14px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer; margin-top: 8px; transition: opacity .2s; }
+  .save-btn:hover { opacity: .9; }
+  .save-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* IMAGE UPLOAD */
+  .image-upload-row { display: flex; gap: 12px; align-items: center; }
+  .image-upload-row input[type=text] { flex: 1; }
+  .upload-btn-wrap { flex-shrink: 0; }
+  .upload-btn-wrap input[type=file] { display: none; }
+  .upload-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 11px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .image-preview { margin-top: 10px; width: 100%; max-width: 200px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4/3; background: var(--surface2); display: none; }
+  .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .image-preview.show { display: block; }
+  .upload-status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--green); color: var(--green); padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 999; transform: translateY(100px); opacity: 0; transition: all .3s; max-width: 320px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  .empty-row td { text-align: center; color: var(--muted); padding: 40px; }
+
+  select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; font-family: inherit; width: 100%; }
+  select:focus { outline: none; border-color: var(--accent); }
+  input[type=date] { color-scheme: dark; }
+
+  .reply-preview-box { background: var(--surface2); border-radius: 10px; padding: 14px; margin-bottom: 16px; font-size: 14px; color: var(--muted); border-left: 3px solid var(--accent); }
+
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    td, th { padding: 10px 12px; }
+    .image-upload-row { flex-direction: column; align-items: stretch; }
+    .tabs { padding: 16px 12px 0; }
+    .tab { padding: 8px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">PC<span>Store</span></div>
+    <div class="login-sub">Admin dashboard — Perth store</div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="login-btn" onclick="login()">Log in</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-page">
+  <nav class="admin-nav">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="admin-logo">PC<span>Store</span></div>
+      <div class="admin-badge">Admin</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="index.html" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;font-size:13px;text-decoration:none;transition:border-color .2s"
+         onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        🏠 View shop
+      </a>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')">📊 Overview</div>
+    <div class="tab" onclick="switchTab('products')">🖥️ Products <span class="tab-badge" id="badge-products" style="display:none"></span></div>
+    <div class="tab" onclick="switchTab('orders')">📦 Orders <span class="tab-badge" id="badge-orders" style="display:none"></span></div>
+    <div class="tab" onclick="switchTab('messages')">💬 Messages <span class="tab-badge" id="badge-messages" style="display:none"></span></div>
+    <div class="tab" onclick="switchTab('reviews')">⭐ Reviews <span class="tab-badge" id="badge-reviews" style="display:none"></span></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-row">
+      <div class="stat-card accent"><div class="stat-card-num" id="s-products">—</div><div class="stat-card-label">Products</div></div>
+      <div class="stat-card orange"><div class="stat-card-num" id="s-pending">—</div><div class="stat-card-label">Pending orders</div></div>
+      <div class="stat-card green"><div class="stat-card-num" id="s-done">—</div><div class="stat-card-label">Completed orders</div></div>
+      <div class="stat-card orange"><div class="stat-card-num" id="s-newmsg">—</div><div class="stat-card-label">New messages</div></div>
+    </div>
+
+    <!-- PRODUCT OVERVIEW -->
+    <div style="margin-top:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600">Tình trạng sản phẩm</h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="ov-filter-btn active" data-filter="all"     onclick="setOvFilter(this)">Tất cả <span id="ov-count-all">0</span></button>
+          <button class="ov-filter-btn"        data-filter="available" onclick="setOvFilter(this)">🟢 Còn hàng <span id="ov-count-available">0</span></button>
+          <button class="ov-filter-btn"        data-filter="reserved"  onclick="setOvFilter(this)">🟡 Đã đặt <span id="ov-count-reserved">0</span></button>
+          <button class="ov-filter-btn"        data-filter="sold"      onclick="setOvFilter(this)">🔴 Đã bán <span id="ov-count-sold">0</span></button>
+        </div>
+      </div>
+      <div id="ov-product-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px"></div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="tab-content" id="tab-products">
+    <div class="section-hdr">
+      <h2>Manage products</h2>
+      <button class="add-btn" onclick="openProductModal(null)">+ Add product</button>
+    </div>
+    <!-- FILTER BAR -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="product-search" placeholder="🔍  Tìm tên sản phẩm..."
+        oninput="applyProductFilter()"
+        style="flex:1;min-width:200px;background:#2b211a;border:1px solid #3d3024;border-radius:8px;padding:10px 14px;color:#f7f0e8;font-size:14px;font-family:inherit;">
+      <select id="product-status-filter" onchange="applyProductFilter()"
+        style="width:auto;padding:10px 14px;font-size:14px;border-radius:8px">
+        <option value="all">Tất cả trạng thái</option>
+        <option value="available">Available</option>
+        <option value="reserved">Reserved</option>
+        <option value="sold">Sold</option>
+      </select>
+      <div id="product-count" style="font-size:13px;color:#a8957f;white-space:nowrap"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Product name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="products-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="tab-content" id="tab-orders">
+    <div class="section-hdr">
+      <h2>Orders</h2>
+      <button class="add-btn" onclick="openOrderModal()">+ Create order</button>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="order-search" placeholder="🔍  Tìm tên khách hoặc sản phẩm..."
+        oninput="applyOrderFilter()"
+        style="flex:1;min-width:200px;background:#2b211a;border:1px solid #3d3024;border-radius:8px;padding:10px 14px;color:#f7f0e8;font-size:14px;font-family:inherit;">
+      <select id="order-status-filter" onchange="applyOrderFilter()"
+        style="width:auto;padding:10px 14px;font-size:14px;border-radius:8px">
+        <option value="all">Tất cả trạng thái</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="done">Completed</option>
+      </select>
+      <div id="order-count" style="font-size:13px;color:#a8957f;white-space:nowrap"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Customer</th><th>Phone</th><th>Product</th><th>Pickup</th><th>Status</th><th>Update status</th><th>Action</th>
+        </tr></thead>
+        <tbody id="orders-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="tab-content" id="tab-messages">
+    <div class="section-hdr">
+      <h2>Messages</h2>
+    </div>
+    <!-- FILTER BAR -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="msg-search" placeholder="🔍  Tìm tên hoặc nội dung..."
+        oninput="applyMessageFilter()"
+        style="flex:1;min-width:200px;background:#2b211a;border:1px solid #3d3024;border-radius:8px;padding:10px 14px;color:#f7f0e8;font-size:14px;font-family:inherit;">
+      <select id="msg-status-filter" onchange="applyMessageFilter()"
+        style="width:auto;padding:10px 14px;font-size:14px;border-radius:8px">
+        <option value="all">Tất cả trạng thái</option>
+        <option value="new">New</option>
+        <option value="read">Read</option>
+        <option value="replied">Replied</option>
+      </select>
+      <div id="msg-count" style="font-size:13px;color:#a8957f;white-space:nowrap"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Name</th><th>Contact</th><th>Message</th><th>Received</th><th>Status</th>
+        </tr></thead>
+        <tbody id="messages-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="tab-content" id="tab-reviews">
+    <div class="section-hdr">
+      <h2>Reviews</h2>
+    </div>
+    <!-- FILTER BAR -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="review-search" placeholder="🔍  Tìm tên hoặc bình luận..."
+        oninput="applyReviewFilter()"
+        style="flex:1;min-width:200px;background:#2b211a;border:1px solid #3d3024;border-radius:8px;padding:10px 14px;color:#f7f0e8;font-size:14px;font-family:inherit;">
+      <select id="review-rating-filter" onchange="applyReviewFilter()"
+        style="width:auto;padding:10px 14px;font-size:14px;border-radius:8px">
+        <option value="all">Tất cả đánh giá</option>
+        <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
+        <option value="4">⭐⭐⭐⭐ 4 sao</option>
+        <option value="3">⭐⭐⭐ 3 sao</option>
+        <option value="2">⭐⭐ 2 sao</option>
+        <option value="1">⭐ 1 sao</option>
+      </select>
+      <div id="review-count" style="font-size:13px;color:#a8957f;white-space:nowrap"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Name</th><th>Product</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="reviews-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="product-modal-title">Add product</h3>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="product-id">
+      <div class="form-group"><label>Product name *</label><input type="text" id="p-name" placeholder="e.g. Gaming PC RTX 4060"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Price (AUD) *</label><input type="number" id="p-price" placeholder="1200"></div>
+        <div class="form-group"><label>Sale price (AUD)</label><input type="number" id="p-sale-price" placeholder="Để trống nếu không sale"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Status</label>
+          <select id="p-status">
+            <option value="available">Available</option>
+            <option value="reserved">Reserved</option>
+            <option value="sold">Sold</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Category</label><input type="text" id="p-category" placeholder="e.g. Gaming, Office, Editing"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Warranty</label><input type="text" id="p-warranty" placeholder="e.g. 6 month"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-group">
+        <label>Product image</label>
+        <div class="image-upload-row">
+          <input type="text" id="p-img" placeholder="https://... or upload a photo">
+          <div class="upload-btn-wrap" id="upload-btn-wrap">
+            <label for="p-img-file" class="upload-btn">📷 Upload photo</label>
+            <input type="file" id="p-img-file" accept="image/*">
+          </div>
+        </div>
+        <div class="upload-status" id="upload-status"></div>
+        <div class="image-preview" id="image-preview">
+          <img id="image-preview-img" src="" alt="Preview"
+            onerror="this.style.opacity='.3'"
+            onload="this.style.opacity='1'">
+        </div>
+      </div>
+      <div class="form-group"><label>Short description</label><textarea id="p-desc" placeholder="Short product description..."></textarea></div>
+      <div class="form-group"><label>Full specifications</label><textarea id="p-specs" placeholder="CPU: Intel i5-13400F&#10;RAM: 16GB DDR4&#10;GPU: RTX 4060&#10;SSD: 500GB NVMe&#10;..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="save-btn" id="save-product-btn" onclick="saveProduct()">💾 Save product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create order</h3>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Customer name *</label><input type="text" id="o-name" placeholder="John Smith"></div>
+      <div class="form-group"><label>Phone number *</label><input type="text" id="o-phone" placeholder="04XX XXX XXX"></div>
+      <div class="form-group"><label>Product</label>
+        <select id="o-product"><option value="">-- Select a product --</option></select>
+      </div>
+      <div class="form-group"><label>Pickup date</label><input type="date" id="o-date"></div>
+      <div class="form-group"><label>Pickup time</label>
+        <select id="o-time"><option value="">-- Select a date first --</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="save-btn" onclick="saveOrder()">💾 Create order</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPLY MODAL -->
+<div class="modal-overlay" id="reply-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Reply to review</h3>
+      <button class="modal-close" onclick="closeReplyModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="reply-preview-box" id="reply-review-preview"></div>
+      <div class="form-group">
+        <label>Your reply *</label>
+        <textarea id="reply-text" placeholder="Write your reply..." style="min-height:100px"></textarea>
+      </div>
+      <input type="hidden" id="reply-review-id">
+    </div>
+    <div class="modal-footer">
+      <button class="save-btn" onclick="submitReply()">💬 Send reply</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://ahquyhbbnrtdlaydrrnm.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFocXV5aGJibnJ0ZGxheWRycm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg1MTgsImV4cCI6MjA5Nzc1NDUxOH0.vf1pMfXU5b7gvnC9AiFChw96WQZQMHMEeTH8R5tcUj4';
+  // SERVICE_KEY đã được xóa — dùng RLS policy "authenticated" thay thế
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ─── STATE ───────────────────────────────────────────────────────────────
+  let products = [];
+  let orders   = [];
+  let messages = [];
+  let reviews  = [];
+  let realtimeStarted = false; // flag chặn gọi nhiều lần
+
+  // ─── AUTH ─────────────────────────────────────────────────────────────────
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session) showAdmin();
+    else { realtimeStarted = false; showLogin(); }
+  });
+
+  window.login = async function () {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+    const err   = document.getElementById('login-error');
+    err.textContent = '';
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (error) err.textContent = '❌ ' + (error.message === 'Invalid login credentials' ? 'Incorrect email or password' : error.message);
+  };
+
+  window.logout = async function () {
+    await supabase.auth.signOut();
+  };
+
+  function showLogin() {
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('admin-page').style.display = 'none';
+  }
+  function showAdmin() {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('admin-page').style.display = 'block';
+    loadAll();
+    startRealtime();
+  }
+
+  // ─── REALTIME ─────────────────────────────────────────────────────────────
+  function startRealtime() {
+    if (realtimeStarted) return; // chặn gọi lại
+    realtimeStarted = true;
+    supabase.channel('realtime-orders')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+        await loadOrders();
+        updateStats();
+        showNotification('📦 Đơn hàng mới!', payload.new.customer_name + ' vừa đặt ' + (payload.new.product_name || 'một sản phẩm'));
+      })
+      .subscribe();
+
+    supabase.channel('realtime-messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
+        await loadMessages();
+        updateStats();
+        showNotification('💬 Tin nhắn mới!', payload.new.name + ': ' + payload.new.message.slice(0, 60) + '...');
+      })
+      .subscribe();
+  }
+
+  function showNotification(title, body) {
+    // Đổi title tab để báo hiệu
+    document.title = '🔴 ' + document.title.replace(/^🔴 /, '');
+    setTimeout(() => { document.title = document.title.replace(/^🔴 /, ''); }, 5000);
+
+    // Âm thanh ping
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+    } catch(e) {}
+
+    // Popup thông báo góc phải
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#221a14;border:1px solid #ff5722;border-radius:12px;padding:16px 20px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:Inter,sans-serif;';
+    const tabTarget = title.includes('📦') ? 'orders' : 'messages';
+    box.innerHTML = '<div style="font-weight:700;color:#ff5722;margin-bottom:4px;font-size:15px">' + title + '</div>'
+      + '<div style="color:#f7f0e8;font-size:13px;line-height:1.5">' + body + '</div>'
+      + '<div style="margin-top:10px;display:flex;gap:8px">'
+      + '<button onclick="switchTab(\'' + tabTarget + '\');this.closest(\'div\').parentElement.remove()" style="background:#ff5722;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600">Xem ngay</button>'
+      + '<button onclick="this.closest(\'div\').parentElement.remove()" style="background:#2b211a;color:#a8957f;border:1px solid #3d3024;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer">Bỏ qua</button>'
+      + '</div>';
+    document.body.appendChild(box);
+    setTimeout(() => { if (box.parentNode) box.remove(); }, 8000);
+  }
+
+  // ─── TABS ─────────────────────────────────────────────────────────────────
+  const TAB_NAMES = ['dashboard', 'products', 'orders', 'messages', 'reviews'];
+  window.switchTab = function (tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', TAB_NAMES[i] === tab));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+  };
+
+  // ─── LOAD ─────────────────────────────────────────────────────────────────
+  async function loadAll() {
+    await Promise.all([loadProducts(), loadOrders(), loadMessages(), loadReviews()]);
+    updateStats();
+  }
+
+  async function loadProducts() {
+    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    products = data || [];
+    renderProductsTable();
+    populateProductSelect();
+  }
+  async function loadOrders() {
+    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    orders = data || [];
+    applyOrderFilter();
+  }
+  async function loadMessages() {
+    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
+    messages = data || [];
+    renderMessagesTable();
+  }
+  async function loadReviews() {
+    const { data } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+    reviews = data || [];
+    renderReviewsTable();
+  }
+
+  let ovFilter = 'all';
+
+  window.setOvFilter = function(btn) {
+    document.querySelectorAll('.ov-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ovFilter = btn.getAttribute('data-filter');
+    renderOvGrid();
+  };
+
+  function renderOvGrid() {
+    const statusLabel = { available: 'Còn hàng', reserved: 'Đã đặt', sold: 'Đã bán' };
+    const grid = document.getElementById('ov-product-grid');
+    if (!grid) return;
+
+    // Cập nhật số đếm trên filter buttons
+    ['all','available','reserved','sold'].forEach(s => {
+      const el = document.getElementById('ov-count-' + s);
+      if (el) el.textContent = s === 'all' ? products.length : products.filter(p => (p.status||'available') === s).length;
+    });
+
+    const list = ovFilter === 'all' ? products : products.filter(p => (p.status||'available') === ovFilter);
+
+    if (!list.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:14px;padding:20px 0">Không có sản phẩm nào.</div>`;
+      return;
+    }
+
+    grid.innerHTML = list.map(p => {
+      const st = p.status || 'available';
+      const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+      const imgHtml = p.image_url
+        ? `<img class="ov-card-img" src="${p.image_url}" alt="${escHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">\n<div class="ov-card-img-fallback" style="display:none">🖥️</div>`
+        : `<div class="ov-card-img-fallback">🖥️</div>`;
+      return `<div class="ov-card" style="position:relative">
+        ${hasSale ? '<div style="position:absolute;top:8px;right:8px;background:#d63030;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;z-index:2">SALE</div>' : ''}
+        ${imgHtml}
+        <div class="ov-card-body">
+          <div class="ov-card-name" title="${escHtml(p.name)}">${escHtml(p.name)}</div>
+          <div class="ov-card-price">${salePriceHtml(p)}</div>
+          <span class="ov-card-status ${st}">${statusLabel[st]||st}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function updateStats() {
+    const pendingOrders  = orders.filter(o => o.status === 'pending').length;
+    const doneOrders     = orders.filter(o => o.status === 'done').length;
+    const newMessages    = messages.filter(m => m.status === 'new').length;
+    const availProducts  = products.filter(p => p.status === 'available').length;
+
+    document.getElementById('s-products').textContent = products.length;
+    document.getElementById('s-pending').textContent  = pendingOrders;
+    document.getElementById('s-done').textContent     = doneOrders;
+    document.getElementById('s-newmsg').textContent   = newMessages;
+
+    // Tab badges
+    setBadge('badge-products', availProducts);
+    setBadge('badge-orders',   pendingOrders);
+    setBadge('badge-messages', newMessages);
+    setBadge('badge-reviews',  reviews.filter(r => !r.admin_reply).length);
+
+    // Overview grid
+    renderOvGrid();
+  }
+
+  function setBadge(id, count) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (count > 0) { el.textContent = count; el.style.display = 'inline-flex'; }
+    else { el.style.display = 'none'; }
+  }
+
+  function formatPrice(p) {
+    return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(p);
+  }
+
+  // ─── PRODUCTS TABLE ───────────────────────────────────────────────────────
+  function salePriceHtml(p) {
+    const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+    if (hasSale) {
+      return `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px">${formatPrice(p.price)}</span><span style="color:#d63030;font-weight:700">${formatPrice(p.sale_price)}</span>`;
+    }
+    return formatPrice(p.price);
+  }
+
+  function renderProductsTable() {
+    // Gọi qua filter để giữ trạng thái filter nếu đang active
+    if (document.getElementById('product-search')) {
+      applyProductFilter();
+    } else {
+      const tb = document.getElementById('products-table');
+      const statusLabel = { available: 'Available', reserved: 'Reserved', sold: 'Sold' };
+      if (!products.length) { tb.innerHTML = '<tr class="empty-row"><td colspan="5">No products yet — add your first one!</td></tr>'; return; }
+      tb.innerHTML = products.map(p => {
+        const status = p.status || 'available';
+        return `<tr>
+          <td class="td-name">${escHtml(p.name)}</td>
+          <td>${escHtml(p.category || '—')}</td>
+          <td class="td-price">${salePriceHtml(p)}</td>
+          <td><span class="status ${status}">${statusLabel[status]}</span></td>
+          <td><div class="action-btns">
+            <button class="edit-btn" data-id="${p.id}" onclick="editProductById(this)">✏️ Edit</button>
+            <button class="del-btn"  data-id="${p.id}" onclick="deleteProductById(this)">🗑️ Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // FIX: read id from element attribute so type is always correct
+  window.editProductById = function (btn) {
+    const id = btn.getAttribute('data-id');
+    // Supabase UUID → string; integer id → parse to number
+    const p = products.find(x => String(x.id) === String(id));
+    if (!p) { showToast('Product not found', true); return; }
+    openProductModal(p);
+  };
+
+  window.deleteProductById = async function (btn) {
+    const id = btn.getAttribute('data-id');
+    const p  = products.find(x => String(x.id) === String(id));
+    if (!p) { showToast('Product not found', true); return; }
+
+    if (!confirm(`Xóa sản phẩm "${p.name}"?\nTất cả đơn hàng liên quan sẽ bị xóa luôn.`)) return;
+
+    // Xóa toàn bộ đơn hàng liên quan
+    const relatedOrders = orders.filter(o => String(o.product_id) === String(p.id));
+    for (const o of relatedOrders) {
+      await supabase.from('orders').delete().eq('id', o.id);
+    }
+
+    const { error } = await supabase.from('products').delete().eq('id', p.id);
+    if (error) {
+      console.error('Delete product error:', error);
+      showToast('❌ Lỗi xóa sản phẩm: ' + (error.message || error.code || JSON.stringify(error)), true);
+      return;
+    }
+
+    showToast(relatedOrders.length > 0
+      ? `🗑️ Đã xóa sản phẩm và ${relatedOrders.length} đơn hàng liên quan`
+      : '🗑️ Đã xóa sản phẩm');
+    await loadProducts();
+    await loadOrders();
+    updateStats();
+  };
+
+  // ─── PRODUCT MODAL ────────────────────────────────────────────────────────
+  window.openProductModal = function (product) {
+    const isEdit = !!product;
+    document.getElementById('product-modal-title').textContent = isEdit ? 'Edit product' : 'Add product';
+    document.getElementById('product-id').value = isEdit ? product.id : '';
+    document.getElementById('upload-status').textContent = '';
+    const preview = document.getElementById('image-preview');
+    preview.classList.remove('show');
+
+    if (isEdit) {
+      document.getElementById('p-name').value     = product.name || '';
+      document.getElementById('p-price').value    = product.price || '';
+      document.getElementById('p-sale-price').value = product.sale_price || '';
+      document.getElementById('p-status').value   = product.status || 'available';
+      document.getElementById('p-category').value = product.category || '';
+      document.getElementById('p-warranty').value = product.warranty || '';
+      document.getElementById('p-img').value      = product.image_url || '';
+      document.getElementById('p-desc').value     = product.description || '';
+      document.getElementById('p-specs').value    = product.specs || '';
+      if (product.image_url) {
+        document.getElementById('image-preview-img').src = product.image_url;
+        preview.classList.add('show');
+      }
+    } else {
+      ['p-name','p-price','p-sale-price','p-category','p-warranty','p-img','p-desc','p-specs'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('p-status').value = 'available';
+    }
+    document.getElementById('product-modal').classList.add('open');
+  };
+
+  window.closeProductModal = () => document.getElementById('product-modal').classList.remove('open');
+
+  // Image URL preview
+  document.getElementById('p-img').addEventListener('input', e => {
+    const url = e.target.value.trim();
+    const preview = document.getElementById('image-preview');
+    if (url) { document.getElementById('image-preview-img').src = url; preview.classList.add('show'); }
+    else { preview.classList.remove('show'); }
+  });
+
+  // Image file upload
+  document.getElementById('p-img-file').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const status     = document.getElementById('upload-status');
+    const preview    = document.getElementById('image-preview');
+    const previewImg = document.getElementById('image-preview-img');
+
+    // Hiện preview local ngay lập tức
+    const localUrl = URL.createObjectURL(file);
+    previewImg.src = localUrl;
+    preview.classList.add('show');
+    status.textContent = '⏳ Đang upload...';
+    status.style.color = 'var(--muted)';
+
+    // Reset để có thể chọn lại cùng file
+    e.target.value = '';
+
+    try {
+      const ext      = file.name.split('.').pop().toLowerCase();
+      const fileName = `product-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      document.getElementById('p-img').value = urlData.publicUrl;
+      previewImg.src = urlData.publicUrl;
+      status.textContent = '✅ Upload thành công!';
+      status.style.color = 'var(--green)';
+
+    } catch (err) {
+      status.textContent = '❌ Upload lỗi: ' + (err.message || 'Kiểm tra Storage bucket');
+      status.style.color = 'var(--red)';
+      // Vẫn giữ preview local và cho phép save với URL thủ công
+    }
+  });
+
+  window.saveProduct = async function () {
+    const rawId = document.getElementById('product-id').value;
+    const salePriceRaw = document.getElementById('p-sale-price').value.trim();
+    const data = {
+      name:        document.getElementById('p-name').value.trim(),
+      price:       parseFloat(document.getElementById('p-price').value),
+      sale_price:  salePriceRaw ? parseFloat(salePriceRaw) : null,
+      status:      document.getElementById('p-status').value,
+      category:    document.getElementById('p-category').value.trim(),
+      warranty:    document.getElementById('p-warranty').value.trim(),
+      image_url:   document.getElementById('p-img').value.trim(),
+      description: document.getElementById('p-desc').value.trim(),
+      specs:       document.getElementById('p-specs').value.trim(),
+    };
+    if (!data.name)         { showToast('Please enter a product name', true); return; }
+    if (isNaN(data.price))  { showToast('Please enter a valid price', true); return; }
+    if (data.sale_price !== null && data.sale_price >= data.price) {
+      showToast('⚠️ Giá sale phải nhỏ hơn giá gốc', true);
+      return;
+    }
+
+    const btn = document.getElementById('save-product-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    let error;
+    if (rawId) {
+      ({ error } = await supabase.from('products').update(data).eq('id', rawId));
+    } else {
+      ({ error } = await supabase.from('products').insert(data));
+    }
+    btn.disabled = false;
+    btn.textContent = '💾 Save product';
+
+    if (error) { showToast('Error: ' + error.message, true); return; }
+    showToast(rawId ? '✅ Product updated' : '✅ Product added');
+    closeProductModal();
+    await loadProducts();
+    updateStats();
+  };
+
+  // ─── ORDERS TABLE ─────────────────────────────────────────────────────────
+  function renderOrdersTable(list) {
+    const tb = document.getElementById('orders-table');
+    const statusLabel = { pending: 'Pending', confirmed: 'Confirmed', done: 'Completed', cancelled: 'Cancelled' };
+    const data = list !== undefined ? list : orders;
+    if (!data.length) {
+      tb.innerHTML = '<tr class="empty-row"><td colspan="6">Không tìm thấy đơn hàng nào</td></tr>';
+      return;
+    }
+    tb.innerHTML = data.map(o => `
+      <tr>
+        <td><strong>${escHtml(o.customer_name)}</strong></td>
+        <td>${escHtml(o.customer_phone)} <button onclick="copyText('${escHtml(o.customer_phone)}')" title="Copy SĐT" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">📋</button></td>
+        <td>${escHtml(o.product_name || '—')}</td>
+        <td style="color:var(--muted)">${o.pickup_date ? `${o.pickup_date} · ${o.pickup_time || ''}` : '—'}</td>
+        <td><span class="status ${o.status}">${statusLabel[o.status] || o.status}</span></td>
+        <td>
+          <select data-id="${o.id}" onchange="updateOrderStatus(this)" style="padding:6px 10px;font-size:12px;width:auto">
+            <option value="pending"    ${o.status==='pending'    ?'selected':''}>Pending</option>
+            <option value="confirmed"  ${o.status==='confirmed'  ?'selected':''}>Confirmed</option>
+            <option value="done"       ${o.status==='done'       ?'selected':''}>Completed</option>
+            <option value="cancelled"  ${o.status==='cancelled'  ?'selected':''}>Cancelled</option>
+          </select>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="edit-btn" data-id="${o.id}" onclick="printInvoice(this)" style="white-space:nowrap">🧾 Invoice</button>
+            <button class="del-btn" data-id="${o.id}" onclick="deleteOrderById(this)" style="white-space:nowrap">🗑️ Xóa</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  window.applyProductFilter = function() {
+    const keyword = (document.getElementById('product-search').value || '').toLowerCase().trim();
+    const status  = document.getElementById('product-status-filter').value;
+    const filtered = products.filter(p => {
+      const matchSearch = !keyword || (p.name || '').toLowerCase().includes(keyword) || (p.category || '').toLowerCase().includes(keyword);
+      const matchStatus = status === 'all' || (p.status || 'available') === status;
+      return matchSearch && matchStatus;
+    });
+    const tb = document.getElementById('products-table');
+    const statusLabel = { available: 'Available', reserved: 'Reserved', sold: 'Sold' };
+    if (!filtered.length) { tb.innerHTML = '<tr class="empty-row"><td colspan="5">Không tìm thấy sản phẩm nào</td></tr>'; }
+    else {
+      tb.innerHTML = filtered.map(p => {
+        const st = p.status || 'available';
+        return `<tr>
+          <td class="td-name">${escHtml(p.name)}</td>
+          <td>${escHtml(p.category || '—')}</td>
+          <td class="td-price">${salePriceHtml(p)}</td>
+          <td><span class="status ${st}">${statusLabel[st]}</span></td>
+          <td><div class="action-btns">
+            <button class="edit-btn" data-id="${p.id}" onclick="editProductById(this)">✏️ Edit</button>
+            <button class="del-btn"  data-id="${p.id}" onclick="deleteProductById(this)">🗑️ Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+    const countEl = document.getElementById('product-count');
+    countEl.textContent = (keyword || status !== 'all') ? `Hiển thị ${filtered.length} / ${products.length} sản phẩm` : `Tổng: ${products.length} sản phẩm`;
+  };
+
+  window.applyMessageFilter = function() {
+    const keyword = (document.getElementById('msg-search').value || '').toLowerCase().trim();
+    const status  = document.getElementById('msg-status-filter').value;
+    const filtered = messages.filter(m => {
+      const matchSearch = !keyword || (m.name || '').toLowerCase().includes(keyword) || (m.message || '').toLowerCase().includes(keyword) || (m.contact || '').toLowerCase().includes(keyword);
+      const matchStatus = status === 'all' || m.status === status;
+      return matchSearch && matchStatus;
+    });
+    const tb = document.getElementById('messages-table');
+    if (!filtered.length) { tb.innerHTML = '<tr class="empty-row"><td colspan="5">Không tìm thấy tin nhắn nào</td></tr>'; return; }
+    tb.innerHTML = filtered.map(m => {
+      const date = new Date(m.created_at);
+      const dateStr = date.toLocaleDateString('en-AU') + ' ' + date.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+      return `<tr>
+        <td><strong>${escHtml(m.name)}</strong></td>
+        <td>${escHtml(m.contact)}</td>
+        <td style="max-width:300px;white-space:normal">${escHtml(m.message)}</td>
+        <td style="color:var(--muted);white-space:nowrap">${dateStr}</td>
+        <td>
+          <select data-id="${m.id}" onchange="updateMessageStatus(this)" style="padding:6px 10px;font-size:12px;width:auto">
+            <option value="new"     ${m.status==='new'     ?'selected':''}>New</option>
+            <option value="read"    ${m.status==='read'    ?'selected':''}>Read</option>
+            <option value="replied" ${m.status==='replied' ?'selected':''}>Replied</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join('');
+    const countEl = document.getElementById('msg-count');
+    countEl.textContent = (keyword || status !== 'all') ? `Hiển thị ${filtered.length} / ${messages.length} tin` : `Tổng: ${messages.length} tin`;
+  };
+
+  window.applyReviewFilter = function() {
+    const keyword = (document.getElementById('review-search').value || '').toLowerCase().trim();
+    const rating  = document.getElementById('review-rating-filter').value;
+    const filtered = reviews.filter(r => {
+      const matchSearch = !keyword || (r.name || '').toLowerCase().includes(keyword) || (r.comment || '').toLowerCase().includes(keyword);
+      const matchRating = rating === 'all' || String(r.rating) === rating;
+      return matchSearch && matchRating;
+    });
+    const tb = document.getElementById('reviews-table');
+    if (!filtered.length) { tb.innerHTML = '<tr class="empty-row"><td colspan="6">Không tìm thấy review nào</td></tr>'; return; }
+    tb.innerHTML = filtered.map(r => {
+      const stars = '⭐'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const date  = new Date(r.created_at).toLocaleDateString('en-AU');
+      const replyHtml = r.admin_reply ? `<div style="margin-top:6px;font-size:12px;color:var(--accent);font-style:italic">↩ ${escHtml(r.admin_reply)}</div>` : '';
+      return `<tr>
+        <td><strong>${escHtml(r.name)}</strong></td>
+        <td style="color:var(--muted)">${escHtml(r.product_name || '—')}</td>
+        <td>${stars}</td>
+        <td style="max-width:200px;white-space:normal">${escHtml(r.comment)}${replyHtml}</td>
+        <td style="color:var(--muted);white-space:nowrap">${date}</td>
+        <td><div class="action-btns">
+          <button class="edit-btn" data-id="${r.id}" onclick="openReplyModalById(this)">💬 Reply</button>
+          <button class="del-btn"  data-id="${r.id}" onclick="deleteReviewById(this)">🗑️ Delete</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+    const countEl = document.getElementById('review-count');
+    countEl.textContent = (keyword || rating !== 'all') ? `Hiển thị ${filtered.length} / ${reviews.length} review` : `Tổng: ${reviews.length} review`;
+  };
+
+  window.copyText = function(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ Đã copy: ' + text));
+  };
+
+  window.recalcTotal = function(basePrice) {
+    const d = parseFloat(document.getElementById('discount-input').value) || 0;
+    const t = Math.max(0, basePrice - d);
+    const f = new Intl.NumberFormat('en-AU', { style:'currency', currency:'AUD' });
+    document.getElementById('cell-total').textContent = f.format(t);
+  };
+
+  window.printInvoice = function(btn) {
+    const id = btn.getAttribute('data-id');
+    const o  = orders.find(x => String(x.id) === String(id));
+    if (!o) return;
+
+    // Tìm thông tin sản phẩm để lấy warranty và specs
+    const prod = products.find(x => String(x.id) === String(o.product_id)) || {};
+    const warranty = prod.warranty || '';
+    const specs    = prod.specs    || '';
+
+    const invoiceNum = 'INV-' + String(o.id).slice(0,8).toUpperCase();
+    const today      = new Date().toLocaleDateString('en-AU');
+    const pickupDate = o.pickup_date
+      ? new Date(o.pickup_date).toLocaleDateString('en-AU') + (o.pickup_time ? ' · ' + o.pickup_time : '')
+      : '___/___/______';
+
+    // Warranty checkbox HTML
+    const wList = ['3 month', '6 month', '12 month'];
+    const wHtml = wList.map(w => {
+      const checked = warranty.toLowerCase().includes(w.replace(' month','')) ? '☑' : '☐';
+      return `${checked} ${w}`;
+    }).join('&nbsp;&nbsp;&nbsp;');
+
+    // Specs list
+    const specsHtml = specs
+      ? specs.split('\n').filter(s => s.trim()).map(s => `<div>${s.trim()}</div>`).join('')
+      : '<div style="color:#888">—</div>';
+
+    const price = prod.price ? prod.price : 0;
+    const hasSale = prod.sale_price && prod.sale_price > 0 && prod.sale_price < price;
+    const discount = hasSale ? (price - prod.sale_price) : 0;
+    const total = hasSale ? prod.sale_price : price;
+    const fmtMoney = v => new Intl.NumberFormat('en-AU', { style:'currency', currency:'AUD' }).format(v);
+    const priceFormatted    = price ? fmtMoney(price) : '';
+    const discountFormatted = hasSale ? fmtMoney(discount) : '';
+    const totalFormatted    = price ? fmtMoney(total) : '';
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice ${invoiceNum}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: 'Times New Roman', Times, serif; font-size:11px; color:#000; background:#fff; padding:30px; max-width:720px; margin:0 auto; }
+  h1 { text-align:center; font-size:17px; letter-spacing:2px; text-decoration:underline; margin-bottom:18px; }
+  .info-block { margin-bottom:4px; }
+  .section { margin:12px 0 4px; font-weight:bold; font-size:11px; }
+  table { width:100%; border-collapse:collapse; margin:6px 0; }
+  th { background:#555; color:#fff; padding:5px 8px; text-align:left; font-size:11px; }
+  td { border:1px solid #999; padding:5px 8px; font-size:11px; vertical-align:top; }
+  td.no-border { border:none; padding:3px 8px; }
+  th:nth-child(2), td:nth-child(2) { width:35px; text-align:center; }
+  th:nth-child(3), td:nth-child(3) { width:95px; text-align:right; }
+  th:nth-child(4), td:nth-child(4) { width:95px; text-align:right; }
+  th:nth-child(5), td:nth-child(5) { width:60px; text-align:right; }
+  th:nth-child(6), td:nth-child(6) { width:95px; text-align:right; }
+  .subtotal-row td { border-top:1px solid #555; border-left:none; border-right:none; border-bottom:none; }
+  .total-row td { border-top:2px solid #000; border-left:none; border-right:none; border-bottom:none; font-weight:bold; font-size:11px; }
+  .label-cell { text-align:right; color:#444; padding-right:12px; }
+  .specs-block { border:1px solid #ccc; padding:8px 10px; margin:6px 0; line-height:1.7; font-size:11px; }
+  .warranty-row { margin:8px 0; font-size:11px; }
+  .terms { margin-top:14px; font-size:11px; line-height:1.7; }
+  .terms ul { padding-left:14px; }
+  .payment-block { margin:10px 0; font-size:11px; line-height:1.9; }
+  .blank { display:inline-block; border-bottom:1px solid #000; min-width:140px; }
+  .blank-sm { display:inline-block; border-bottom:1px solid #000; min-width:70px; }
+  input.discount-in { width:80px; border:none; border-bottom:1px solid #000; text-align:right; font-size:11px; font-family:inherit; background:transparent; outline:none; }
+  @media print { body { padding:16px; } .no-print { display:none; } }
+</style>
+</head>
+<body>
+<div class="no-print" style="position:fixed;top:12px;right:12px;display:flex;gap:8px">
+  <button onclick="downloadImage()" style="padding:8px 16px;background:#2b6cb0;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:sans-serif">📥 Tải ảnh</button>
+  <button onclick="window.print()" style="padding:8px 16px;background:#e05a2b;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:sans-serif">🖨️ In hóa đơn</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+<script>
+function downloadImage(){
+  var btns=document.querySelector('.no-print');
+  btns.style.display='none';
+  html2canvas(document.body,{scale:2,useCORS:true,backgroundColor:'#ffffff'}).then(function(canvas){
+    btns.style.display='flex';
+    var a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download='invoice-${invoiceNum}.png';
+    a.click();
+  });
+}
+<\/script>
+
+<h1>INVOICE</h1>
+
+<div class="info-block"><strong>Business Name:</strong> Huynh Duc Trang</div>
+<div class="info-block"><strong>Address:</strong> 46 Yosemite Loop, Ballajura WA 6066</div>
+<div class="info-block"><strong>ABN:</strong> 14 758 276 393</div>
+
+<br>
+<div class="info-block"><strong>Invoice Number:</strong> ${invoiceNum}</div>
+<div class="info-block"><strong>Invoice Date:</strong> ${today}</div>
+<div class="info-block"><strong>Pickup:</strong> ${pickupDate}</div>
+
+<br>
+<div class="section">Bill To:</div>
+<div class="info-block"><strong>Customer Name:</strong> ${o.customer_name || ''}</div>
+<div class="info-block"><strong>Phone:</strong> ${o.customer_phone || ''}</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Qty</th>
+      <th>Unit Price (AUD)</th>
+      <th>Discount (AUD)</th>
+      <th>Tax</th>
+      <th>Total (AUD)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Used Custom Built PC${prod.name ? ' — ' + prod.name : ''}</td>
+      <td style="text-align:center">1</td>
+      <td style="text-align:right">${priceFormatted}</td>
+      <td style="text-align:right">${discountFormatted}</td>
+      <td style="text-align:right"></td>
+      <td style="text-align:right">${totalFormatted}</td>
+    </tr>
+    <tr>
+      <td colspan="5" class="no-border" style="border:none;text-align:right;font-weight:bold">Total Amount:</td>
+      <td class="no-border" style="border-top:2px solid #000;text-align:right;font-weight:bold;font-size:11px">${totalFormatted}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section">Specifications:</div>
+<div class="specs-block">${specsHtml}</div>
+
+<div class="section">Payment Method (tick one):</div>
+<div class="payment-block">
+  ☐ Bank Transfer &nbsp;&nbsp; ☐ PayID &nbsp;&nbsp; ☐ Cash<br><br>
+  <strong>Bank Name:</strong> <span class="blank"></span><br>
+  <strong>Account Name:</strong> Huynh Duc Trang<br>
+  <strong>BSB:</strong> <span class="blank-sm"></span><br>
+  <strong>Account Number:</strong> <span class="blank"></span>
+</div>
+
+<div class="section">Warranty:</div>
+<div class="warranty-row">${wHtml} &nbsp;&nbsp; (hardware only)</div>
+
+<div class="terms">
+  <strong>Terms &amp; Conditions</strong>
+  <ul>
+    <li>Used/refurbished computer, may show minor wear.</li>
+    <li>Fully tested and working at time of sale.</li>
+    <li>Warranty covers hardware faults only.</li>
+    <li>No coverage for software issues, misuse, or physical damage.</li>
+    <li>No refunds for change of mind.</li>
+  </ul>
+</div>
+
+</body>
+</html>`;
+
+    const recalcFn = `function recalcTotal(basePrice){
+  var d=parseFloat(document.getElementById('discount-input').value)||0;
+  var t=Math.max(0,basePrice-d);
+  var f=new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'});
+  document.getElementById('cell-total').textContent=f.format(t);
+}`;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    const s = win.document.createElement('script');
+    s.textContent = recalcFn;
+    win.document.head.appendChild(s);
+    win.document.close();
+  };
+
+  window.exportOrdersCSV = function() {
+    if (!orders.length) { showToast('Không có đơn hàng nào để export', true); return; }
+
+    const headers = ['Tên khách', 'Số điện thoại', 'Sản phẩm', 'Ngày lấy', 'Giờ lấy', 'Trạng thái', 'Ngày đặt'];
+    const rows = orders.map(o => [
+      o.customer_name   || '',
+      o.customer_phone  || '',
+      o.product_name    || '',
+      o.pickup_date     || '',
+      o.pickup_time     || '',
+      o.status          || '',
+      o.created_at ? new Date(o.created_at).toLocaleDateString('en-AU') : ''
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`));
+
+    const csv  = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const date = new Date().toISOString().slice(0,10);
+    a.href     = url;
+    a.download = `orders-${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`✅ Đã export ${orders.length} đơn hàng`);
+  };
+
+  window.applyOrderFilter = function() {
+    const keyword = (document.getElementById('order-search').value || '').toLowerCase().trim();
+    const status  = document.getElementById('order-status-filter').value;
+
+    const filtered = orders.filter(o => {
+      const matchSearch = !keyword
+        || (o.customer_name  || '').toLowerCase().includes(keyword)
+        || (o.customer_phone || '').toLowerCase().includes(keyword)
+        || (o.product_name   || '').toLowerCase().includes(keyword);
+      const matchStatus = status === 'all' || o.status === status;
+      return matchSearch && matchStatus;
+    });
+
+    renderOrdersTable(filtered);
+
+    const countEl = document.getElementById('order-count');
+    if (keyword || status !== 'all') {
+      countEl.textContent = `Hiển thị ${filtered.length} / ${orders.length} đơn`;
+    } else {
+      countEl.textContent = `Tổng: ${orders.length} đơn`;
+    }
+  };
+
+  window.updateOrderStatus = async function (sel) {
+    const id       = sel.getAttribute('data-id');
+    const status   = sel.value;
+    const order    = orders.find(o => String(o.id) === String(id));
+
+    const { error } = await supabase.from('orders').update({ status }).eq('id', id);
+    if (error) { showToast('Error: ' + error.message, true); return; }
+
+    // Tự động cập nhật trạng thái sản phẩm theo đơn hàng
+    if (order?.product_id) {
+      let productStatus = null;
+
+      if (status === 'done') {
+        // Đơn hoàn thành → sản phẩm đã bán
+        productStatus = 'sold';
+      } else if (status === 'confirmed') {
+        // Đơn xác nhận → giữ reserved
+        productStatus = 'reserved';
+      } else if (status === 'pending') {
+        // Đơn quay lại pending → mở lại sản phẩm
+        productStatus = 'available';
+      }
+
+      if (productStatus) {
+        const { error: pErr } = await supabase
+          .from('products')
+          .update({ status: productStatus })
+          .eq('id', order.product_id);
+        if (pErr) console.warn('Product status update failed:', pErr.message);
+        else await loadProducts();
+      }
+    }
+
+    const labels = { done: 'Completed ✅', confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled' };
+    showToast(`✅ Order marked as ${labels[status] || status}`);
+    await loadOrders();
+    updateStats();
+  };
+
+  window.deleteOrderById = async function (btn) {
+    const id = btn.getAttribute('data-id');
+    const o  = orders.find(x => String(x.id) === String(id));
+    if (!o) { showToast('Order not found', true); return; }
+
+    if (!confirm(`Xóa đơn hàng của "${o.customer_name}"?\nHành động này không thể hoàn tác.`)) return;
+
+    // Nếu đơn đang giữ sản phẩm → tự động mở lại về Available
+    if (o.product_id && (o.status === 'pending' || o.status === 'confirmed')) {
+      await supabase.from('products').update({ status: 'available' }).eq('id', o.product_id);
+      await loadProducts();
+    }
+
+    const { error } = await supabase.from('orders').delete().eq('id', o.id);
+    if (error) {
+      console.error('Delete order error:', error);
+      showToast('❌ Lỗi xóa đơn hàng: ' + (error.message || error.code || JSON.stringify(error)), true);
+      return;
+    }
+    showToast('🗑️ Đã xóa đơn hàng');
+    await loadOrders();
+    updateStats();
+  };
+
+  function populateProductSelect() {
+    const sel = document.getElementById('o-product');
+    sel.innerHTML = '<option value="">-- Select a product --</option>' +
+      products.map(p => `<option value="${p.id}" data-name="${escHtml(p.name)}">${escHtml(p.name)} – ${formatPrice(p.price)}</option>`).join('');
+  }
+
+  window.openOrderModal = function () {
+    ['o-name', 'o-phone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('o-product').value = '';
+    const dateInput = document.getElementById('o-date');
+    dateInput.min   = new Date().toISOString().split('T')[0];
+    dateInput.value = '';
+    document.getElementById('o-time').innerHTML = '<option value="">-- Select a date first --</option>';
+    document.getElementById('order-modal').classList.add('open');
+  };
+  window.closeOrderModal = () => document.getElementById('order-modal').classList.remove('open');
+
+  document.getElementById('o-date').addEventListener('change', e => {
+    const date = new Date(e.target.value + 'T00:00:00');
+    const day  = date.getDay();
+    const sel  = document.getElementById('o-time');
+    let opts   = [];
+    if (day === 0 || day === 6) { for (let h = 8;  h <= 20; h++) opts.push(`${h}:00`); }
+    else                        { for (let h = 17; h <= 21; h++) opts.push(`${h}:00`); }
+    sel.innerHTML = '<option value="">-- Select a time --</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join('');
+  });
+
+  window.saveOrder = async function () {
+    const name      = document.getElementById('o-name').value.trim();
+    const phone     = document.getElementById('o-phone').value.trim();
+    const sel       = document.getElementById('o-product');
+    const productId = sel.value || null;
+    const productName = sel.options[sel.selectedIndex]?.dataset.name || null;
+    const date      = document.getElementById('o-date').value;
+    const time      = document.getElementById('o-time').value;
+    if (!name || !phone) { showToast('Please enter a name and phone number', true); return; }
+    const { error } = await supabase.from('orders').insert({
+      customer_name: name, customer_phone: phone,
+      product_id: productId, product_name: productName,
+      pickup_date: date || null, pickup_time: time || null
+    });
+    if (error) { showToast('Error: ' + error.message, true); return; }
+    showToast('✅ Order created');
+    closeOrderModal();
+    await loadOrders();
+    updateStats();
+  };
+
+  // ─── MESSAGES TABLE ───────────────────────────────────────────────────────
+  function renderMessagesTable() {
+    applyMessageFilter();
+  }
+
+  window.updateMessageStatus = async function (sel) {
+    const id     = sel.getAttribute('data-id');
+    const status = sel.value;
+    const { error } = await supabase.from('messages').update({ status }).eq('id', id);
+    if (error) { showToast('Error: ' + error.message, true); return; }
+    showToast('✅ Status updated');
+    await loadMessages();
+    updateStats();
+  };
+
+  // ─── REVIEWS TABLE ────────────────────────────────────────────────────────
+  function renderReviewsTable() {
+    applyReviewFilter();
+  }
+
+  // FIX: use data-id to avoid string/number mismatch
+  window.openReplyModalById = function (btn) {
+    const id = btn.getAttribute('data-id');
+    const r  = reviews.find(x => String(x.id) === String(id));
+    if (!r) { showToast('Review not found', true); return; }
+    document.getElementById('reply-review-id').value = id;
+    document.getElementById('reply-text').value       = r.admin_reply || '';
+    document.getElementById('reply-review-preview').innerHTML =
+      `<strong>${escHtml(r.name)}</strong> · ${'⭐'.repeat(r.rating)}<br>
+       <span style="margin-top:4px;display:block;color:var(--text)">${escHtml(r.comment)}</span>`;
+    document.getElementById('reply-modal').classList.add('open');
+  };
+
+  window.closeReplyModal = function () {
+    document.getElementById('reply-modal').classList.remove('open');
+  };
+
+  window.submitReply = async function () {
+    const id    = document.getElementById('reply-review-id').value;
+    const reply = document.getElementById('reply-text').value.trim();
+    if (!reply) { showToast('Please write a reply first', true); return; }
+
+    const btn = document.querySelector('#reply-modal .save-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+
+    // Use supabase client (works with anon + RLS) instead of raw fetch with service key
+    const { error } = await supabase.from('reviews').update({ admin_reply: reply }).eq('id', id);
+
+    btn.disabled    = false;
+    btn.textContent = '💬 Send reply';
+
+    if (error) { showToast('Error: ' + error.message, true); return; }
+    showToast('✅ Reply saved');
+    closeReplyModal();
+    await loadReviews();
+  };
+
+  window.deleteReviewById = async function (btn) {
+    const id = btn.getAttribute('data-id');
+    const r  = reviews.find(x => String(x.id) === String(id));
+    if (!r) { showToast('Review not found', true); return; }
+    if (!confirm(`Delete review by "${r.name}"?`)) return;
+
+    // Dùng supabase client với session admin đang đăng nhập
+    // RLS policy "authenticated can delete" cho phép điều này
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
+    if (error) { showToast('Error: ' + error.message, true); return; }
+    showToast('🗑️ Review deleted');
+    await loadReviews();
+  };
+
+  // ─── UTILITIES ────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+</script>
+</body>
+</html>

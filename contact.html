@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact – PCStore Perth</title>
+<meta name="description" content="Get in touch with PCStore Perth via Messenger. Local pickup in the Ballajura area, Perth WA. 3–12 month warranty on every build.">
+<meta property="og:title" content="Contact – PCStore Perth">
+<meta property="og:description" content="Get in touch with PCStore Perth. Local pickup, Ballajura WA.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pcstoreperth.com/contact.html">
+<meta property="og:image" content="https://pcstoreperth.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://pcstoreperth.com/og-image.jpg">
+<link rel="canonical" href="https://pcstoreperth.com/contact.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-156L86KK58"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-156L86KK58');
+</script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
+    PC<span>Store</span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link" href="index.html">All Products</a>
+    <a class="nav-link" href="specials.html">Specials and Promotions</a>
+    <a class="nav-link" href="info.html">Build Guide</a>
+    <a class="nav-link active" href="contact.html">Contact Us</a>
+ 
+  </div>
+  <button class="nav-toggle" id="nav-toggle">☰</button>
+</nav>
+
+<section class="contact-section">
+  <div class="contact-inner">
+    <div class="contact-info">
+      <h1>Get in touch</h1>
+      <p>All questions, build advice, and pickup scheduling happen over Messenger. I usually reply within a few hours.</p>
+      <div class="contact-list">
+        <div class="contact-item">
+          <div class="contact-icon">
+            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.1 0 0 7.4 0 16.6c0 5.2 2.6 9.9 6.7 12.9V36l6.1-3.4c1.6.5 3.4.7 5.2.7 9.9 0 18-7.4 18-16.6S27.9 0 18 0z" fill="#0080FF"/><path d="M8.2 21.9 14.6 15l5.5 4.2L26.9 11l-6.4 6.9-5.5-4.2-7 8.2z" fill="#fff"/></svg>
+          </div>
+          Messenger — usually replies within a few hours
+        </div>
+        <div class="contact-item"><div class="contact-icon">📍</div> Ballajura area, Perth WA</div>
+        <div class="contact-item"><div class="contact-icon">🛡️</div> 3–12 month warranty on every build</div>
+        <div class="contact-item"><div class="contact-icon">🕐</div> Pickup: Mon–Fri after 5pm · Sat–Sun anytime</div>
+        <div class="contact-item"><div class="contact-icon">📧</div> duchuynhtrang@gmail.com</div>
+      </div>
+      <div class="map-wrap">
+        <iframe loading="lazy" src="https://www.google.com/maps?q=Ballajura,+WA,+Australia&output=embed"></iframe>
+      </div>
+    </div>
+    <div class="contact-cta">
+      <h3>Send a message</h3>
+      <p>Ask about a build, pricing, or arrange a pickup time. We'll get back to you on Messenger.</p>
+      <a class="primary-btn" id="contact-messenger-btn" href="#" target="_blank">💬 Open Messenger</a>
+      <div class="response-note"><span class="live-dot"></span>Usually online during the day</div>
+
+      <div class="form-divider"><span>or leave a message here</span></div>
+
+      <div id="contact-form-view">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="cf-name" placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label>Email or phone *</label>
+          <input type="text" id="cf-contact" placeholder="Email or phone number">
+        </div>
+        <div class="form-group">
+          <label>Message *</label>
+          <textarea id="cf-message" placeholder="What would you like to ask?"></textarea>
+        </div>
+        <button class="secondary-btn" id="contact-form-submit">Send message</button>
+      </div>
+      <div id="contact-form-success" class="hidden">
+        <div style="font-size:36px;margin-bottom:8px">✅</div>
+        <p style="color:var(--text);font-weight:600;margin-bottom:4px">Message sent!</p>
+        <p style="font-size:13px;color:var(--muted)">We'll get back to you soon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>© 2025 PCStore Perth · Custom built PCs, hand-tested</div>
+  <div style="margin-top:8px">All orders confirmed via <strong>Messenger</strong> · <a href="privacy.html">Privacy &amp; Terms</a></div>
+</footer>
+
+<script type="module" src="contact.js"></script>
+</body>
+</html>

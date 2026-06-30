@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found – PCStore Perth</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .error-page {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+  .error-code {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(80px, 20vw, 140px);
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .error-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .error-sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 36px;
+    max-width: 360px;
+  }
+  .error-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn-home {
+    background: var(--accent);
+    color: #fff;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: opacity .2s;
+  }
+  .btn-home:hover { opacity: .85; }
+  .btn-contact {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: border-color .2s;
+  }
+  .btn-contact:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
+    PC<span>Store</span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link" href="index.html">Products</a>
+    <a class="nav-link" href="info.html">Build Guide</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+  </div>
+  <button class="nav-toggle" id="nav-toggle">☰</button>
+</nav>
+
+<div class="error-page">
+  <div class="error-code">404</div>
+  <div class="error-title">Page not found</div>
+  <p class="error-sub">The page you're looking for doesn't exist — it may have been moved, or the link might be wrong.</p>
+  <div class="error-actions">
+    <a class="btn-home" href="index.html">🖥️ View all builds</a>
+    <a class="btn-contact" href="contact.html">💬 Contact us</a>
+  </div>
+</div>
+
+<footer>
+  <div>© 2025 PCStore Perth · Custom built PCs, hand-tested</div>
+</footer>
+
+<script src="nav-toggle.js"></script>
+</body>
+</html>
