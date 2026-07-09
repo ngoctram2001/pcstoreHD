@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Page Not Found – PCStore Perth</title>
+<title>Page Not Found – JohnnyPC</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -75,15 +75,38 @@
 <nav>
   <a class="logo" href="index.html">
     <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
-    PC<span>Store</span>
+    Johnny<span>PC</span>
   </a>
   <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="index.html">Products</a>
+    <a class="nav-link" href="index.html">All Products</a>
+    <a class="nav-link" href="specials.html">Specials and Promotions</a>
     <a class="nav-link" href="info.html">Build Guide</a>
-    <a class="nav-link" href="contact.html">Contact</a>
+    <a class="nav-link" href="contact.html">Contact Us</a>
+    <a class="nav-link" href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook page</a>
+    <a class="nav-link" href="privacy.html">Privacy Policy</a>
   </div>
-  <button class="nav-toggle" id="nav-toggle">☰</button>
+  <div class="nav-right">
+    <button class="nav-toggle" id="nav-toggle">☰</button>
+    <div class="nav-account-wrap" id="nav-account-wrap">
+      <button class="nav-account-btn nav-signin-btn" id="nav-account-btn" type="button" title="Account"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg><span>Sign in</span></button>
+      <div class="account-dropdown" id="account-dropdown"></div>
+    </div>
+    <button class="nav-cart-btn" id="nav-cart-btn" onclick="toggleCartDrawer()" title="Cart">
+      🛒
+      <span class="nav-cart-count" id="nav-cart-count" style="display:none">0</span>
+    </button>
+  </div>
 </nav>
+
+<!-- WISHLIST DRAWER -->
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-drawer-header">
+    <h3>🛒 Cart</h3>
+    <button class="wish-close-btn" onclick="toggleCartDrawer()">✕</button>
+  </div>
+  <div id="cart-list"></div>
+</div>
+<div id="cart-overlay" onclick="toggleCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499"></div>
 
 <div class="error-page">
   <div class="error-code">404</div>
@@ -95,10 +118,19 @@
   </div>
 </div>
 
+<a class="floating-messenger" id="floating-messenger-btn" href="#" target="_blank">
+  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.1 0 0 7.4 0 16.6c0 5.2 2.6 9.9 6.7 12.9V36l6.1-3.4c1.6.5 3.4.7 5.2.7 9.9 0 18-7.4 18-16.6S27.9 0 18 0z" fill="#fff"/><path d="M8.2 21.9 14.6 15l5.5 4.2L26.9 11l-6.4 6.9-5.5-4.2-7 8.2z" fill="#0066ff"/></svg>
+</a>
+
 <footer>
-  <div>© 2025 PCStore Perth · Custom built PCs, hand-tested</div>
+  <div>© 2026 Ngọc Trầm</div>
 </footer>
 
-<script src="nav-toggle.js"></script>
+<script type="module" src="auth.js"></script>
+<script type="module" src="nav-cart.js"></script>
+<script type="module">
+import { MESSENGER_LINK } from './supabase-client.js';
+document.getElementById('floating-messenger-btn').href = MESSENGER_LINK;
+</script>
 </body>
 </html>

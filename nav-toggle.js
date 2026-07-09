@@ -1,5 +1,5 @@
 // ============================================
-// PCStore Perth — shared nav toggle (mobile menu)
+// JohnnyPC — shared nav toggle (mobile menu)
 // Used by: info.html, privacy.html (pages without Supabase forms)
 // ============================================
 

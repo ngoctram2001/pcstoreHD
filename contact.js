@@ -1,5 +1,5 @@
 // ============================================
-// PCStore Perth — contact.html logic
+// JohnnyPC — contact.html logic
 // ============================================
 
 import { supabase, MESSENGER_LINK } from './supabase-client.js';
@@ -11,10 +11,7 @@ const MESSAGE_COOLDOWN = 60 * 1000;
 // Messenger link
 document.getElementById('contact-messenger-btn').href = MESSENGER_LINK;
 
-// Nav toggle
-document.getElementById('nav-toggle').addEventListener('click', () => {
-  document.getElementById('nav-links').classList.toggle('open');
-});
+// Nav toggle được xử lý bởi nav-cart.js (dùng chung cho mọi trang)
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(msg, isError = false) {
@@ -59,19 +56,19 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
   if (!message) { setFieldError('cf-message', true); hasError = true; }
 
   if (hasError) {
-    showToast('⚠️ Vui lòng điền đầy đủ thông tin', true);
+    showToast('⚠️ Please fill in all fields', true);
     return;
   }
 
   if (!isValidContact(contact)) {
     setFieldError('cf-contact', true);
-    showToast('⚠️ Email hoặc số điện thoại không hợp lệ', true);
+    showToast('⚠️ Invalid email or phone number', true);
     return;
   }
 
   if (message.length < 10) {
     setFieldError('cf-message', true);
-    showToast('⚠️ Tin nhắn quá ngắn, hãy mô tả thêm nhé!', true);
+    showToast('⚠️ Your message is too short — please add a bit more detail!', true);
     return;
   }
 
@@ -79,13 +76,13 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
   const now = Date.now();
   if (now - lastMessageSubmit < MESSAGE_COOLDOWN) {
     const wait = Math.ceil((MESSAGE_COOLDOWN - (now - lastMessageSubmit)) / 1000);
-    showToast(`⏳ Vui lòng chờ ${wait}s trước khi gửi tiếp`, true);
+    showToast(`⏳ Please wait ${wait}s before sending again`, true);
     return;
   }
 
   const btn = document.getElementById('contact-form-submit');
   btn.disabled    = true;
-  btn.textContent = 'Đang gửi...';
+  btn.textContent = 'Sending...';
 
   const { error } = await supabase.from('messages').insert({ name, contact, message });
 
@@ -106,7 +103,7 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
   btn.textContent = 'Send message';
 
   if (error) {
-    showToast('❌ Lỗi: ' + error.message, true);
+    showToast('❌ Error: ' + error.message, true);
     return;
   }
 
@@ -114,7 +111,7 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
   lastMessageSubmit = Date.now();
   document.getElementById('contact-form-view').classList.add('hidden');
   document.getElementById('contact-form-success').classList.remove('hidden');
-  showToast('✅ Tin nhắn đã được gửi!');
+  showToast('✅ Message sent!');
 });
 
 // Xoá border đỏ khi người dùng bắt đầu gõ lại

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading... – JohnnyPC</title>
+<meta name="description" content="Hand-built custom PCs in Perth, WA.">
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="JohnnyPC">
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.product-page { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+.back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:14px; text-decoration:none; margin-bottom:28px; transition:color .2s; }
+.back-link:hover { color:var(--accent); }
+.product-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; }
+@media (max-width:768px) { .product-layout { grid-template-columns:1fr; gap:28px; } .product-page { padding:20px 16px 48px; } }
+.gallery { display:flex; flex-direction:column; gap:12px; }
+.gallery-main { width:100%; aspect-ratio:4/3; border-radius:var(--radius); overflow:hidden; background:var(--surface2); position:relative; border:1px solid var(--border); }
+.gallery-main img { width:100%; height:100%; object-fit:cover; transition:opacity .3s; cursor:zoom-in; }
+.gallery-main .img-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:64px; }
+.gallery-thumbs { display:flex; gap:8px; flex-wrap:wrap; }
+.gallery-thumb { width:72px; height:72px; border-radius:8px; overflow:hidden; border:2px solid transparent; cursor:pointer; transition:border-color .2s; background:var(--surface2); flex-shrink:0; }
+.gallery-thumb.active { border-color:var(--accent); }
+.gallery-thumb img { width:100%; height:100%; object-fit:cover; }
+.lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:1000; align-items:center; justify-content:center; }
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:8px; }
+.lightbox-close { position:absolute; top:20px; right:24px; font-size:28px; color:#fff; cursor:pointer; background:none; border:none; line-height:1; }
+.lightbox-prev, .lightbox-next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.15); border:none; color:#fff; font-size:24px; width:48px; height:48px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.lightbox-prev { left:20px; }
+.lightbox-next { right:20px; }
+.product-info { display:flex; flex-direction:column; gap:16px; }
+.product-category { font-size:12px; font-weight:700; color:var(--accent); letter-spacing:1px; text-transform:uppercase; }
+.product-title { font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700; line-height:1.2; }
+@media (max-width:768px) { .product-title { font-size:22px; } }
+.product-price-wrap { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.product-price { font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700; color:var(--accent); }
+.product-price-original { font-size:18px; color:var(--muted); text-decoration:line-through; }
+.product-price-sale { font-size:32px; font-weight:700; color:#d63030; font-family:'Space Grotesk',sans-serif; }
+.sale-tag { background:#d63030; color:#fff; font-size:12px; font-weight:700; padding:3px 10px; border-radius:6px; }
+.product-status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.product-desc { color:var(--muted); font-size:15px; line-height:1.7; }
+.specs-section { margin-top:4px; }
+.specs-title { font-weight:700; font-size:15px; margin-bottom:10px; }
+.specs-list { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.specs-row { display:flex; padding:10px 16px; border-bottom:1px solid var(--border); font-size:14px; }
+.specs-row:last-child { border-bottom:none; }
+.specs-key { color:var(--muted); width:130px; flex-shrink:0; }
+.specs-val { color:var(--text); font-weight:500; }
+.specs-plain { padding:14px 16px; font-size:14px; line-height:1.8; color:var(--text); white-space:pre-line; }
+.order-section { display:flex; flex-direction:column; gap:10px; padding-top:8px; }
+.order-btn-main { width:100%; padding:16px; border-radius:12px; background:var(--accent); color:#fff; font-size:16px; font-weight:700; border:none; cursor:pointer; transition:opacity .2s; font-family:inherit; }
+.order-btn-main:hover { opacity:.88; }
+.order-btn-main:disabled { background:var(--surface2); color:var(--muted); cursor:not-allowed; opacity:1; }
+.cart-toggle-btn { width:100%; padding:12px; border-radius:12px; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:.2s; }
+.cart-toggle-btn:hover { border-color:var(--accent); }
+.cart-toggle-btn.in-cart { background:var(--accent); border-color:var(--accent); color:#fff; }
+.order-note { font-size:13px; color:var(--muted); text-align:center; }
+.not-found { text-align:center; padding:80px 24px; }
+.not-found h2 { font-size:24px; margin-bottom:12px; }
+.not-found p { color:var(--muted); margin-bottom:24px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
+    Johnny<span>PC</span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link active" href="index.html">All Products</a>
+    <a class="nav-link" href="specials.html">Specials and Promotions</a>
+    <a class="nav-link" href="info.html">Build Guide</a>
+    <a class="nav-link" href="contact.html">Contact Us</a>
+    <a class="nav-link" href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook page</a>
+    <a class="nav-link" href="privacy.html">Privacy Policy</a>
+  </div>
+  <div class="nav-right">
+    <button class="nav-toggle" id="nav-toggle">☰</button>
+    <div class="nav-account-wrap" id="nav-account-wrap">
+      <button class="nav-account-btn nav-signin-btn" id="nav-account-btn" type="button" title="Account"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg><span>Sign in</span></button>
+      <div class="account-dropdown" id="account-dropdown"></div>
+    </div>
+    <button class="nav-cart-btn" id="nav-cart-btn" onclick="toggleCartDrawer()" title="Cart">
+      🛒
+      <span class="nav-cart-count" id="nav-cart-count" style="display:none">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- WISHLIST DRAWER -->
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-drawer-header">
+    <h3>🛒 Cart</h3>
+    <button class="wish-close-btn" onclick="toggleCartDrawer()">✕</button>
+  </div>
+  <div id="cart-list"></div>
+</div>
+<div id="cart-overlay" onclick="toggleCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499"></div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-prev" onclick="event.stopPropagation();lightboxNav(-1)">&#8249;</button>
+  <img id="lightbox-img" src="" alt="">
+  <button class="lightbox-next" onclick="event.stopPropagation();lightboxNav(1)">&#8250;</button>
+</div>
+
+<div class="product-page">
+  <a class="back-link" href="javascript:history.back()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:500;text-decoration:none;margin-bottom:28px;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">&#8592; Back</a>
+  <div id="product-content">
+    <div style="text-align:center;padding:60px;color:var(--muted)">Loading...</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="order-modal">
+  <div class="modal order-modal-box">
+    <div class="modal-header">
+      <h3>Order Build</h3>
+      <button class="modal-close" onclick="closeModal('order-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div id="booking-product-preview"></div>
+      <div id="booking-form-view">
+        <div class="form-group"><label>Your name *</label><input type="text" id="o-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Phone number *</label><input type="tel" id="o-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="form-group"><label>Pickup date *</label><select id="o-date"></select></div>
+        <div class="form-group"><label>Pickup time *</label><select id="o-time"></select></div>
+        <button class="submit-btn" onclick="submitOrder()">&#128230; Confirm order</button>
+      </div>
+      <div id="booking-success-view" class="hidden" style="text-align:center;padding:32px 0">
+        <div style="font-size:48px;margin-bottom:16px">&#9989;</div>
+        <h3 style="margin-bottom:8px">Order request received!</h3>
+        <p style="color:var(--muted);margin-bottom:20px">This build has been reserved for you.</p>
+        <div style="background:var(--surface2);border-radius:10px;padding:14px;font-size:14px;color:var(--muted);margin-bottom:20px">
+          &#128172; Please message us on Messenger to confirm your pickup address.
+        </div>
+        <a id="success-messenger-link" href="#" target="_blank" class="save-btn" style="text-decoration:none;display:inline-block">
+          &#128172; Open Messenger to confirm
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a class="floating-messenger" id="floating-messenger-btn" href="#" target="_blank">
+  <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
+    <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.888 1.37 5.47 3.526 7.195V22l3.405-1.869c.91.251 1.872.387 2.869.387 5.523 0 10-4.145 10-9.275C22 6.145 17.523 2 12 2zm1.006 12.482l-2.548-2.715-4.972 2.715 5.472-5.808 2.61 2.715 4.91-2.715-5.472 5.808z"/>
+  </svg>
+</a>
+
+<!-- INFO BANNER -->
+<div style="margin-top:48px;border-top:1px solid var(--border);padding:24px 0 32px">
+  <div style="display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:center;align-items:center;margin-bottom:14px">
+    <span style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">🛡️ 3–12 month warranty</span>
+    <span style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">📍 Ballajura, Perth WA</span>
+    <span style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">📧 <a href="mailto:duchuynhtrang@gmail.com" style="color:var(--accent);text-decoration:none">duchuynhtrang@gmail.com</a></span>
+  </div>
+  <div style="text-align:center;font-size:12px;color:var(--muted)">
+    © 2026 Ngọc Trầm · <a href="privacy.html" style="color:var(--muted);text-decoration:none">Privacy Policy</a>
+  </div>
+</div>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="nav-cart.js"></script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_KEY, MESSENGER_LINK } from './supabase-client.js';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+document.getElementById('floating-messenger-btn').href = MESSENGER_LINK;
+document.getElementById('success-messenger-link').href = MESSENGER_LINK;
+
+let galleryImages = [];
+let lightboxIndex = 0;
+let currentProduct = null;
+
+window.openLightbox = function(idx) {
+  lightboxIndex = idx;
+  document.getElementById('lightbox-img').src = galleryImages[idx];
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeLightbox = function() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+};
+window.lightboxNav = function(dir) {
+  lightboxIndex = (lightboxIndex + dir + galleryImages.length) % galleryImages.length;
+  document.getElementById('lightbox-img').src = galleryImages[lightboxIndex];
+};
+window.setMainImage = function(idx) {
+  const mainImg = document.getElementById('gallery-main-img');
+  if (mainImg) { mainImg.src = galleryImages[idx]; mainImg.onclick = () => openLightbox(idx); }
+  document.querySelectorAll('.gallery-thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
+};
+
+function escHtml(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatPrice(p) { return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(p); }
+function statusPill(s) {
+  const map = { available:['Available','#1e8a5a','#e6f4ed'], reserved:['Reserved','#c97a10','#fef3e2'], sold:['Sold','#d63030','#fdecea'] };
+  const [label,color,bg] = map[s]||map.available;
+  return `<span style="background:${bg};color:${color};border:1px solid ${color}33;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700">${label}</span>`;
+}
+
+// ── Structured data (Schema.org Product) — giúp Google hiện giá/tình trạng trên kết quả tìm kiếm ──
+const AVAILABILITY_MAP = {
+  available: 'https://schema.org/InStock',
+  reserved: 'https://schema.org/Reserved',
+  sold: 'https://schema.org/SoldOut'
+};
+
+function injectProductSchema(p) {
+  const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+  const price = hasSale ? p.sale_price : p.price;
+  const images = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": p.name,
+    "description": p.description || `${p.category || 'Custom Built PC'} — hand-built and tested before sale.`,
+    "sku": p.sku || p.id,
+    "image": images,
+    "brand": { "@type": "Brand", "name": "JohnnyPC" },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "AUD",
+      "price": price,
+      "availability": AVAILABILITY_MAP[p.status] || AVAILABILITY_MAP.available,
+      "itemCondition": "https://schema.org/UsedCondition"
+    }
+  };
+  let tag = document.getElementById('product-schema');
+  if (!tag) {
+    tag = document.createElement('script');
+    tag.type = 'application/ld+json';
+    tag.id = 'product-schema';
+    document.head.appendChild(tag);
+  }
+  tag.textContent = JSON.stringify(schema);
+}
+
+const params = new URLSearchParams(location.search);
+const productId = params.get('id');
+
+if (!productId) { showNotFound(); }
+else {
+  const { data: product, error } = await supabase.from('products').select('*').eq('id', productId).single();
+  if (error || !product) { showNotFound(); }
+  else { currentProduct = product; renderProduct(product); updateCartToggleBtnState(); injectProductSchema(product); }
+}
+
+function showNotFound() {
+  document.getElementById('product-content').innerHTML = `
+    <div class="not-found">
+      <h2>Product not found</h2>
+      <p>This product may have been removed or the link is incorrect.</p>
+      <a href="index.html" style="color:var(--accent);font-weight:600">Back to all products</a>
+    </div>`;
+}
+
+function renderProduct(p) {
+  document.title = `${p.name} - JohnnyPC`;
+  document.querySelector('meta[name="description"]').setAttribute('content',
+    p.description || `${p.name} — hand-built custom PC in Perth, WA.`);
+
+  galleryImages = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+  const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+  const status = p.status || 'available';
+  const canOrder = status === 'available';
+
+  const galleryHtml = galleryImages.length
+    ? `<div class="gallery-main">
+        <img id="gallery-main-img" src="${escHtml(galleryImages[0])}" alt="${escHtml(p.name)}" onclick="openLightbox(0)">
+       </div>
+       ${galleryImages.length > 1 ? `<div class="gallery-thumbs">
+         ${galleryImages.map((img,i) => `<div class="gallery-thumb${i===0?' active':''}" onclick="setMainImage(${i})"><img src="${escHtml(img)}" alt=""></div>`).join('')}
+       </div>` : ''}`
+    : `<div class="gallery-main"><div class="img-fallback">&#128421;</div></div>`;
+
+  let specsHtml = '';
+  if (p.specs) {
+    const lines = p.specs.split('\n').filter(l => l.trim());
+    if (lines.some(l => l.includes(':'))) {
+      specsHtml = `<div class="specs-list">${lines.map(l => {
+        const col = l.indexOf(':');
+        return col > 0
+          ? `<div class="specs-row"><span class="specs-key">${escHtml(l.slice(0,col).trim())}</span><span class="specs-val">${escHtml(l.slice(col+1).trim())}</span></div>`
+          : `<div class="specs-row"><span>${escHtml(l)}</span></div>`;
+      }).join('')}</div>`;
+    } else {
+      specsHtml = `<div class="specs-list"><div class="specs-plain">${escHtml(p.specs)}</div></div>`;
+    }
+  }
+
+  document.getElementById('product-content').innerHTML = `
+    <div class="product-layout">
+      <div class="gallery">
+        ${galleryHtml}
+        ${p.description ? `<p class="product-desc" style="margin-top:16px">${escHtml(p.description)}</p>` : ''}
+      </div>
+      <div class="product-info">
+        <div class="product-category">${escHtml(p.category||'Custom PC')}</div>
+        <h1 class="product-title">${escHtml(p.name)}</h1>
+        <div class="product-price-wrap">
+          ${hasSale
+            ? `<span class="product-price-original">${formatPrice(p.price)}</span><span class="product-price-sale">${formatPrice(p.sale_price)}</span><span class="sale-tag">Sale</span>`
+            : `<span class="product-price">${formatPrice(p.price)}</span>`}
+        </div>
+        <div class="product-status-row">
+          ${statusPill(status)}
+          ${p.warranty ? `<span style="font-size:13px;color:var(--muted)">&#128737; ${escHtml(p.warranty)} warranty</span>` : ''}
+        </div>
+        ${specsHtml ? `<div class="specs-section"><div class="specs-title">Specifications</div>${specsHtml}</div>` : ''}
+        <div class="order-section">
+          <button class="order-btn-main" ${!canOrder?'disabled':''} onclick="openOrderModal()">
+            ${canOrder ? '&#128230; Order this build' : status==='reserved' ? '&#8987; Reserved' : '&#10003; Sold'}
+          </button>
+          <button class="cart-toggle-btn" id="cart-toggle-btn" onclick="toggleCartFromProduct()">
+            🛒 Add to cart
+          </button>
+          <button onclick="copyProductLink()" style="width:100%;padding:12px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            🔗 Copy product link
+          </button>
+          ${canOrder ? `<p class="order-note">&#128205; Local pickup only · Perth, WA</p>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Q&A SECTION -->
+    <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border)">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px">
+        &#10067; Questions and Answers
+      </h2>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Please submit your questions.</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <textarea id="qa-message" placeholder="Your questions about this product..." rows="3"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical"></textarea>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input type="text" id="qa-name" placeholder="Name *"
+              style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit">
+            <input type="text" id="qa-contact" placeholder="Phone or Email *"
+              style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit">
+          </div>
+          <button onclick="submitQuestion('${escHtml(p.name)}')"
+            style="align-self:flex-start;padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+           Submit your questions
+          </button>
+          <div id="qa-status" style="font-size:13px;min-height:18px"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+window.copyProductLink = function() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.querySelector('[onclick="copyProductLink()"]');
+    const original = btn.textContent;
+    btn.textContent = '✅ Link copied!';
+    setTimeout(() => btn.textContent = original, 2000);
+  });
+};
+
+// ── Cart (dùng chung logic lưu trữ với nav-cart.js) ──────────────────────
+window.toggleCartFromProduct = function() {
+  if (!currentProduct) return;
+  const list = window.getCart();
+  const idx = list.findIndex(p => p.id === currentProduct.id);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+  } else {
+    list.push(currentProduct);
+  }
+  window.saveCart(list);
+  window.updateCartUI();
+  updateCartToggleBtnState();
+};
+
+function updateCartToggleBtnState() {
+  const btn = document.getElementById('cart-toggle-btn');
+  if (!btn || !currentProduct) return;
+  const inCart = window.getCart().some(p => p.id === currentProduct.id);
+  btn.classList.toggle('in-cart', inCart);
+  btn.textContent = inCart ? '✅ Added to cart' : '🛒 Add to cart';
+}
+
+// ── Structured data (Schema.org Product) definitions moved above the top-level await block ──
+
+window.submitQuestion = async function(productName) {
+  const message = document.getElementById('qa-message').value.trim();
+  const name    = document.getElementById('qa-name').value.trim();
+  const contact = document.getElementById('qa-contact').value.trim();
+  const status  = document.getElementById('qa-status');
+
+  if (!message) { status.textContent = '⚠️ Please enter your question'; status.style.color = 'var(--red)'; return; }
+  if (!name)    { status.textContent = '⚠️ Please enter your name'; status.style.color = 'var(--red)'; return; }
+  if (!contact) { status.textContent = '⚠️ Please enter your phone or email'; status.style.color = 'var(--red)'; return; }
+
+  status.textContent = 'Sending...'; status.style.color = 'var(--muted)';
+
+  const { error } = await supabase.from('messages').insert({
+    name, contact,
+    message: `[Question about: ${productName}] ${message}`
+  });
+
+  if (error) {
+    status.textContent = '❌ Failed to send, please try again'; status.style.color = 'var(--red)';
+    return;
+  }
+
+  // ntfy notification
+  fetch('https://ntfy.sh/pcstore-perth-duc-7k2m9x', {
+    method: 'POST',
+    headers: { 'Title': 'Cau hoi san pham moi!', 'Priority': 'default', 'Tags': 'question,bell' },
+    body: `Tu: ${name} (${contact})\nSP: ${productName}\nHoi: ${message}`
+  }).catch(() => {});
+
+  document.getElementById('qa-message').value = '';
+  document.getElementById('qa-name').value = '';
+  document.getElementById('qa-contact').value = '';
+  status.textContent = '✅ Sent! We\'ll get back to you soon.';
+  status.style.color = 'var(--green)';
+};
+
+window.openOrderModal = function() {
+  if (!currentProduct) return;
+  const p = currentProduct;
+  const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+  const img = (p.images && p.images[0]) || p.image_url || '';
+  document.getElementById('booking-product-preview').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:center;padding:12px;background:var(--surface2);border-radius:10px;margin-bottom:16px">
+      ${img ? `<img src="${escHtml(img)}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0">` : ''}
+      <div><div style="font-weight:600">${escHtml(p.name)}</div><div style="color:var(--accent);font-weight:700">${formatPrice(hasSale?p.sale_price:p.price)}</div></div>
+    </div>`;
+
+  // Dates: next 14 days
+  const dateSelect = document.getElementById('o-date');
+  dateSelect.innerHTML = '';
+  const today = new Date();
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const val = d.toISOString().slice(0,10);
+    const label = d.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short'});
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    opt.setAttribute('data-day', d.getDay());
+    dateSelect.appendChild(opt);
+  }
+  updateTimes();
+  dateSelect.onchange = updateTimes;
+
+  document.getElementById('booking-form-view').classList.remove('hidden');
+  document.getElementById('booking-success-view').classList.add('hidden');
+  document.getElementById('o-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
+  document.getElementById('o-phone').value = window.pcAuth?.profile?.phone || '';
+  document.getElementById('order-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+function updateTimes() {
+  const sel = document.getElementById('o-date');
+  const day = parseInt(sel.options[sel.selectedIndex]?.getAttribute('data-day') || '1');
+  const opts = [];
+  if (day === 0 || day === 6) { for (let h=8;h<=20;h++) opts.push(`${h}:00`); }
+  else { for (let h=17;h<=21;h++) opts.push(`${h}:00`); }
+  document.getElementById('o-time').innerHTML = opts.map(t=>`<option>${t}</option>`).join('');
+}
+
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+window.submitOrder = async function() {
+  const name  = document.getElementById('o-name').value.trim();
+  const phone = document.getElementById('o-phone').value.trim();
+  const date  = document.getElementById('o-date').value;
+  const time  = document.getElementById('o-time').value;
+  if (!name || !phone) { alert('Please fill in your name and phone number'); return; }
+  if (!currentProduct) return;
+
+  const { error } = await supabase.from('orders').insert({
+    customer_name: name, customer_phone: phone,
+    product_id: currentProduct.id, product_name: currentProduct.name,
+    pickup_date: date, pickup_time: time, status: 'pending',
+    user_id: window.pcAuth?.user?.id || null
+  });
+  if (error) { alert('Error: ' + error.message); return; }
+  await supabase.from('products').update({ status: 'reserved' }).eq('id', currentProduct.id);
+
+  // Cập nhật lại tên/SĐT vào tài khoản (nếu đã đăng nhập) để lần sau tự điền sẵn
+  if (window.pcAuth?.user?.id) {
+    supabase.from('profiles')
+      .update({ full_name: name, phone: phone, updated_at: new Date().toISOString() })
+      .eq('id', window.pcAuth.user.id)
+      .then(({ error }) => { if (error) console.error('Profile sync error:', error); });
+  }
+
+  fetch('https://ntfy.sh/pcstore-perth-duc-7k2m9x', {
+    method: 'POST',
+    headers: { 'Title': 'Don hang moi!', 'Priority': 'high', 'Tags': 'shopping,bell' },
+    body: `Khach: ${name}\nSDT: ${phone}\nSan pham: ${currentProduct.name}\nNgay lay: ${date} luc ${time}`
+  }).catch(()=>{});
+  document.getElementById('booking-form-view').classList.add('hidden');
+  document.getElementById('booking-success-view').classList.remove('hidden');
+  const btn = document.querySelector('.order-btn-main');
+  if (btn) { btn.disabled = true; btn.textContent = 'Reserved'; }
+};
+</script>
+</body>
+</html>

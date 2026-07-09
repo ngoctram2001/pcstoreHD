@@ -3,24 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCStore Perth – TrangHuynhDuc</title>
+<title>JohnnyPC – TrangHuynhDuc</title>
 <meta name="description" content="Hand-built custom PCs in Perth, WA. Gaming, office, and editing builds — tested before sale, local pickup, 3–12 month warranty.">
-<meta property="og:title" content="PCStore Perth – TrangHuynhDuc">
+<meta property="og:title" content="JohnnyPC – TrangHuynhDuc">
 <meta property="og:description" content="Hand-built custom PCs in Perth, WA. Tested before sale, local pickup, warranty included.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://pcstoreperth.com/">
-<meta property="og:image" content="https://pcstoreperth.com/og-image.jpg">
+<meta property="og:url" content="https://johnnytrangpc.vercel.app/index.html">
+<meta property="og:image" content="https://johnnytrangpc.vercel.app/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PCStore Perth – Custom PCs">
+<meta name="twitter:title" content="JohnnyPC – Custom PCs">
 <meta name="twitter:description" content="Hand-built custom PCs in Perth, WA. Tested before sale, local pickup, warranty included.">
-<meta name="twitter:image" content="https://pcstoreperth.com/og-image.jpg">
-<link rel="canonical" href="https://pcstoreperth.com/">
+<meta name="twitter:image" content="https://johnnytrangpc.vercel.app/og-image.jpg">
+<link rel="canonical" href="https://johnnytrangpc.vercel.app/index.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+
+<!-- Structured data: LocalBusiness -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ElectronicsStore",
+  "name": "JohnnyPC",
+  "image": "https://johnnytrangpc.vercel.app/og-image.jpg",
+  "url": "https://johnnytrangpc.vercel.app/index.html",
+  "telephone": "+61395354242",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "46 Yosemite Loop",
+    "addressLocality": "Ballajura",
+    "addressRegion": "WA",
+    "postalCode": "6066",
+    "addressCountry": "AU"
+  },
+  "sameAs": [
+    "https://www.facebook.com/codepcstore"
+  ]
+}
+</script>
+
+<!-- Structured data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does payment work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ordering on the website is just a reservation — no payment yet. You pay in person when you pick up the build (cash or bank transfer), after checking it over and being happy with it." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I test the PC before taking it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every build is thoroughly tested before it's listed, and you're welcome to test it again on the spot at pickup before paying." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does pickup/delivery work? Do you ship?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Local pickup in Perth, WA only — we don't ship. The exact address will be sent via Messenger once your order request is confirmed." }
+    },
+    {
+      "@type": "Question",
+      "name": "How long is the warranty, and what does it cover?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Each build has its own warranty period (3–12 months), covering hardware faults from normal use. It doesn't cover physical damage, water damage, or unauthorized modifications." }
+    },
+    {
+      "@type": "Question",
+      "name": "What are your pickup hours?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Mon–Fri: pickup only available after 5:00pm. Sat & Sun: pickup available all day (8am–8pm)." }
+    },
+    {
+      "@type": "Question",
+      "name": "Are these new or used parts?",
+      "acceptedAnswer": { "@type": "Answer", "text": "These are hand-built custom PCs made from carefully selected components and thoroughly tested. The exact condition of each component is listed in that product's specifications." }
+    }
+  ]
+}
+</script>
 
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-156L86KK58"></script>
@@ -36,17 +100,38 @@
 <nav>
   <a class="logo" href="index.html">
     <div class="logo-mark"><img src="favicon.png" alt="Logo"></div>
-    PC<span>Store</span>
+    Johnny<span>PC</span>
   </a>
   <div class="nav-links" id="nav-links">
     <a class="nav-link active" href="index.html">All Products</a>
     <a class="nav-link" href="specials.html">Specials and Promotions</a>
     <a class="nav-link" href="info.html">Build Guide</a>
     <a class="nav-link" href="contact.html">Contact Us</a>
-  
+    <a class="nav-link" href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook page</a>
+    <a class="nav-link" href="privacy.html">Privacy Policy</a>
   </div>
-  <button class="nav-toggle" id="nav-toggle">☰</button>
+  <div class="nav-right">
+    <button class="nav-toggle" id="nav-toggle">☰</button>
+    <div class="nav-account-wrap" id="nav-account-wrap">
+      <button class="nav-account-btn nav-signin-btn" id="nav-account-btn" type="button" title="Account"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg><span>Sign in</span></button>
+      <div class="account-dropdown" id="account-dropdown"></div>
+    </div>
+    <button class="nav-cart-btn" id="nav-cart-btn" onclick="toggleCartDrawer()" title="Cart">
+      🛒
+      <span class="nav-cart-count" id="nav-cart-count" style="display:none">0</span>
+    </button>
+  </div>
 </nav>
+
+<!-- WISHLIST DRAWER -->
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-drawer-header">
+    <h3>🛒 Cart</h3>
+    <button class="wish-close-btn" onclick="toggleCartDrawer()">✕</button>
+  </div>
+  <div id="cart-list"></div>
+</div>
+<div id="cart-overlay" onclick="toggleCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499"></div>
 
 <section class="hero">
   <div>
@@ -57,7 +142,7 @@
       <span class="hero-tag">✅ Tested before sale</span>
       <span class="hero-tag">📍 Local pickup, Perth</span>
       <span class="hero-tag">🛡️ 3–12 month warranty</span>
-      <span class="hero-tag">📧 duchuynhtrang@gmail.com</span>
+      <span class="hero-tag">duchuynhtrang@gmail.com</span>
     </div>
   </div>
   <div class="hero-visual">
@@ -69,11 +154,15 @@
 <section class="section-wrap" id="products">
   <div class="section-title">Available Builds</div>
   <div class="section-sub">Filter by status to see what's available, reserved, or already sold</div>
+  <div class="search-bar-wrap">
+    <input type="text" id="product-search" class="search-input" placeholder="🔍 Search products by name...">
+  </div>
   <div class="filter-bar" id="filter-bar">
     <button class="filter-btn active" data-status="all">All</button>
     <button class="filter-btn" data-status="available"><span class="filter-dot" style="background:var(--green)"></span>Available</button>
     <button class="filter-btn" data-status="reserved"><span class="filter-dot" style="background:var(--yellow)"></span>Reserved</button>
     <button class="filter-btn" data-status="sold"><span class="filter-dot" style="background:var(--red)"></span>Sold</button>
+    <button class="filter-btn" data-status="sale">🔥 Sale</button>
     <select id="price-filter" class="price-filter-select">
       <option value="all">All prices</option>
       <option value="0-500">Under $500</option>
@@ -175,6 +264,56 @@
   </div>
 </section>
 
+<!-- FAQ SECTION -->
+<section class="section-wrap" id="faq">
+  <div class="section-title">Frequently Asked Questions</div>
+  <div class="section-sub">Common questions customers ask before ordering a build</div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How does payment work?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">Ordering on the website is just a <strong>reservation</strong> — no payment yet. You pay in person when you pick up the build (cash or bank transfer), after checking it over and being happy with it.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Can I test the PC before taking it?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">Yes. Every build is thoroughly tested before it's listed, and you're welcome to test it again on the spot at pickup before paying.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How does pickup/delivery work? Do you ship?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><strong>Local pickup in Perth, WA only</strong> — we don't ship. The exact address will be sent via Messenger once your order request is confirmed.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How long is the warranty, and what does it cover?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">Each build has its own warranty period (3–12 months, listed on the product), covering hardware faults from normal use. It doesn't cover physical damage, water damage, or unauthorized modifications.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        What are your pickup hours?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">Mon–Fri: pickup only available after 5:00pm. Sat & Sun: pickup available all day (8am–8pm).</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Are these new or used parts?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">These are <strong>hand-built custom PCs</strong> made from carefully selected components and thoroughly tested. The exact condition of each component is listed in that product's specifications.</div>
+    </div>
+  </div>
+</section>
+
 <!-- WRITE REVIEW MODAL -->
 <div class="modal-overlay" id="review-modal">
   <div class="modal">
@@ -192,7 +331,7 @@
     <div class="form-group">
      <label>Which product did you buy?</label>
      <select id="rv-product">
-       <option value="">-- Chọn sản phẩm bạn đã mua --</option>
+       <option value="">-- Select the product you purchased --</option>
      </select>
     </div>    
 
@@ -223,10 +362,12 @@
 <div class="toast" id="toast">✅ Success!</div>
 
 <footer>
-  <div>© 2025 PCStore Perth · Custom built PCs, hand-tested</div>
+  <div>© 2026 Ngọc Trầm</div>
   <div style="margin-top:8px">All orders confirmed via <strong>Messenger</strong> · <a href="contact.html">Contact us</a> · <a href="privacy.html">Privacy &amp; Terms</a></div>
 </footer>
 
+<script type="module" src="auth.js"></script>
+<script type="module" src="nav-cart.js"></script>
 <script type="module" src="shop.js"></script>
 </body>
 </html>

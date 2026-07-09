@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In – JohnnyPC</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  html { overflow-x: hidden; }
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; position: relative; overflow: hidden; }
+  body::before {
+    content: ''; position: absolute; top: -120px; right: -120px; width: 420px; height: 420px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,73,30,.14), transparent 70%); z-index: 0;
+  }
+  body::after {
+    content: ''; position: absolute; bottom: -140px; left: -140px; width: 380px; height: 380px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,140,66,.12), transparent 70%); z-index: 0;
+  }
+
+  .login-card { position: relative; z-index: 1; width: 100%; max-width: 420px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 20px; padding: 40px 36px; box-shadow: 0 20px 50px rgba(44,31,20,.08);
+  }
+  .login-close-btn {
+    position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%;
+    border: none; background: var(--surface2); color: var(--muted); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all .2s; line-height: 1;
+  }
+  .login-close-btn:hover { background: var(--border); color: var(--text); }
+
+  .login-logo-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 18px; }
+  .login-logo-mark { width: 44px; height: 44px; border-radius: 12px; overflow: hidden; }
+  .login-logo-mark img { width: 100%; height: 100%; object-fit: cover; }
+
+  .login-tagline { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  .login-tabs { display: flex; background: var(--surface2); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
+  .login-tab {
+    flex: 1; text-align: center; padding: 9px; border: none; background: none; border-radius: 9px;
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: .2s;
+  }
+  .login-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+
+  .login-field { margin-bottom: 16px; }
+  .login-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .login-field input {
+    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s;
+  }
+  .login-field input:focus { border-color: var(--accent); background: var(--surface); }
+  .password-field-wrap { position: relative; }
+  .password-field-wrap input { padding-right: 42px; }
+  .password-toggle-btn {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px;
+    border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); border-radius: 6px;
+  }
+  .password-toggle-btn:hover { color: var(--text); background: var(--surface2); }
+  .login-error { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+  .login-forgot { text-align: right; margin: -8px 0 18px; }
+  .login-forgot a { font-size: 12.5px; color: var(--muted); text-decoration: none; }
+  .login-forgot a:hover { color: var(--accent); }
+
+  .login-submit-btn {
+    width: 100%; padding: 13px; border: none; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff;
+    font-family: inherit; font-size: 15px; font-weight: 700; transition: opacity .2s;
+  }
+  .login-submit-btn:hover { opacity: .92; }
+  .login-submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .login-consent { text-align: center; font-size: 12px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+
+  .login-divider { display: flex; align-items: center; gap: 12px; margin: 28px 0 20px; color: var(--muted); font-size: 12.5px; }
+  .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .login-social-row { display: flex; justify-content: center; gap: 14px; }
+  .login-social-btn {
+    width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s;
+  }
+  .login-social-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+
+  .login-success-box { text-align: center; }
+  .login-success-icon { font-size: 40px; margin-bottom: 14px; }
+  .login-success-box h3 { font-family: 'Space Grotesk', sans-serif; margin-bottom: 10px; }
+  .login-success-box p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+  .consent-overlay {
+    position: fixed; inset: 0; background: rgba(44,31,20,.55); z-index: 500;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    box-sizing: border-box; overflow: hidden;
+  }
+  .consent-modal {
+    background: var(--surface); border-radius: 18px; max-width: 420px; width: 100%;
+    max-height: 85vh; max-height: 85dvh; overflow-y: auto; overflow-x: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25); box-sizing: border-box;
+  }
+  .consent-modal-header { width: 100%; box-sizing: border-box; padding: 24px 28px 4px; text-align: center; }
+  .consent-modal-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 19px; margin: 0; }
+  .consent-modal-body {
+    width: 100%; box-sizing: border-box; padding: 16px 28px; font-size: 13.5px; color: var(--muted); line-height: 1.7;
+    overflow-wrap: break-word; word-break: break-word;
+  }
+  .consent-modal-body p, .consent-modal-body li, .consent-modal-body h4 {
+    max-width: 100%; overflow-wrap: break-word; word-break: break-word;
+  }
+  .consent-modal-body h4 { color: var(--text); font-size: 14px; margin: 14px 0 6px; }
+  .consent-modal-body ul { margin: 6px 0 6px 18px; padding: 0; max-width: 100%; box-sizing: border-box; }
+  .consent-modal-footer { width: 100%; box-sizing: border-box; padding: 18px 28px 26px; }
+  .consent-accept-btn {
+    width: 100%; padding: 13px; border: none; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #fff;
+    font-family: inherit; font-size: 15px; font-weight: 700; box-sizing: border-box;
+  }
+  .consent-accept-btn:hover { opacity: .92; }
+
+  @media (max-width: 480px) {
+    .consent-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+    .consent-modal {
+      max-width: 100%; width: 100%; height: 100vh; height: 100dvh; max-height: none;
+      border-radius: 0; display: flex; flex-direction: column; overflow-y: hidden;
+    }
+    .consent-modal-header { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 4px; flex-shrink: 0; }
+    .consent-modal-header h2 { font-size: 18px; }
+    .consent-modal-body { padding: 14px 20px; font-size: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .consent-modal-footer { padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px)); flex-shrink: 0; }
+    .login-card { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="consent-overlay hidden" id="consent-overlay">
+  <div class="consent-modal">
+    <div class="consent-modal-header">
+      <h2>Your privacy matters</h2>
+    </div>
+    <div class="consent-modal-body">
+      <p>JohnnyPC collects your name, email, phone, and order details to manage your account, process orders, and provide support — in line with the Australian Privacy Principles (Privacy Act 1988).</p>
+      <p>We don't sell your information to third parties, and you can request access or deletion anytime by contacting us.</p>
+      <p>By continuing, you agree to our <a href="privacy.html" target="_blank" style="color:var(--accent)">Privacy Policy &amp; Terms</a>.</p>
+    </div>
+    <div class="consent-modal-footer">
+      <button class="consent-accept-btn" id="consent-accept-btn" type="button">I understand, continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="login-card">
+  <button class="login-close-btn" id="login-close-btn" type="button" aria-label="Close">✕</button>
+
+  <div class="login-logo-row">
+    <div class="login-logo-mark"><img src="favicon.png" alt="Logo"></div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px">Johnny<span style="color:var(--accent)">PC</span></div>
+  </div>
+  <div class="login-tagline">One account for a faster, saved checkout</div>
+
+  <div id="login-form-area">
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-signin" type="button">Sign In</button>
+      <button class="login-tab" id="tab-signup" type="button">Create Account</button>
+    </div>
+
+    <form id="auth-form">
+      <div class="login-field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <div class="password-field-wrap">
+          <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" required>
+          <button class="password-toggle-btn" type="button" data-target="auth-password" aria-label="Show password">👁</button>
+        </div>
+      </div>
+      <div class="login-field" id="confirm-password-field" style="display:none">
+        <label>Confirm password</label>
+        <div class="password-field-wrap">
+          <input type="password" id="auth-password-confirm" placeholder="••••••••" autocomplete="new-password">
+          <button class="password-toggle-btn" type="button" data-target="auth-password-confirm" aria-label="Show password">👁</button>
+        </div>
+      </div>
+      <div class="login-error" id="auth-error"></div>
+      <div class="login-forgot" id="forgot-link-wrap">
+        <a href="#" id="forgot-link">Forgot password?</a>
+      </div>
+      <button class="login-submit-btn" id="auth-submit-btn" type="submit">Continue</button>
+      <div class="login-consent" id="signup-consent" style="display:none">
+        By creating an account, you agree we'll email you a confirmation link before you can sign in.
+      </div>
+    </form>
+
+    <div class="login-consent" style="margin-top:16px">
+      By continuing, you agree to our <a href="privacy.html" target="_blank" style="color:var(--accent);text-decoration:none">Privacy Policy &amp; Terms</a>.
+    </div>
+
+    <div class="login-divider">or continue with</div>
+    <div class="login-social-row">
+      <button class="login-social-btn" id="google-signin-btn" type="button" title="Sign in with Google">
+        <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l6-6C34.5 5.5 29.5 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.6 18.9 12.5 24 12.5c3.1 0 5.9 1.2 8 3.1l6-6C34.5 5.5 29.5 3.5 24 3.5c-8 0-14.8 4.6-18.2 11.2z"/><path fill="#4CAF50" d="M24 44.5c5.4 0 10.3-1.8 14-4.9l-6.5-5.4c-2 1.4-4.6 2.3-7.5 2.3-5.3 0-9.7-3.1-11.3-7.6l-6.6 5.1C9.1 39.9 15.9 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.5 5.4c-.5.4 6.7-4.9 6.7-14.8 0-1.2-.1-2.4-.4-3.5z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="login-success-box hidden" id="login-success-box">
+    <div class="login-success-icon">📩</div>
+    <h3>Check your email</h3>
+    <p id="login-success-msg">We've sent a confirmation link to your email. Click it to activate your account, then come back and sign in.</p>
+    <button class="login-submit-btn" id="already-confirmed-btn" type="button" style="margin-top:20px">Already confirmed? Sign in</button>
+    <div style="margin-top:14px;font-size:13px" id="resend-signup-wrap">
+      Didn't get it? <a href="#" id="resend-signup-link" style="color:var(--accent);font-weight:600">Resend email</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="login.js"></script>
+</body>
+</html>

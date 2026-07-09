@@ -1,17 +1,17 @@
 // ============================================
-// PCStore Perth — shared Supabase client config
+// JohnnyPC — shared Supabase client config
 // Used by: index.html, admin.html, contact.html (and any future page)
 // ============================================
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-export const SUPABASE_URL = 'https://zxbhzapuqmjkppsbxzci.supabase.co';
-export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4Ymh6YXB1cW1qa3Bwc2J4emNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTc2NTUsImV4cCI6MjA5ODQzMzY1NX0.wAKD0xcsykrgRkdQ8VEu4aO0ydGGO3HRRYFDqTT2sD0';
+export const SUPABASE_URL = 'https://ahquyhbbnrtdlaydrrnm.supabase.co';
+export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFocXV5aGJibnJ0ZGxheWRycm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg1MTgsImV4cCI6MjA5Nzc1NDUxOH0.vf1pMfXU5b7gvnC9AiFChw96WQZQMHMEeTH8R5tcUj4';
 
 // ⚠️ Update this when you set up a Facebook Page (m.me only works with Pages, not personal profiles)
 export const MESSENGER_LINK = 'https://m.me/codepcstore';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
 export function formatPrice(p) {
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(p);

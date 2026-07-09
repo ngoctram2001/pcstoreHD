@@ -1,5 +1,5 @@
 // ============================================
-// PCStore Perth — index.html product/booking logic
+// JohnnyPC — index.html product/booking logic
 // ============================================
 
 import { supabase, formatPrice, isValidPhone, getPickupTimeOptions, MESSENGER_LINK } from './supabase-client.js';
@@ -24,7 +24,7 @@ function checkCooldown(type, label) {
   const diff = now - lastSubmit[type];
   if (diff < COOLDOWN_MS) {
     const wait = Math.ceil((COOLDOWN_MS - diff) / 1000);
-    showToast(`⏳ Vui lòng chờ ${wait}s trước khi ${label} tiếp theo`, true);
+    showToast(`⏳ Please wait ${wait}s before ${label} again`, true);
     return false;
   }
   return true;
@@ -34,6 +34,7 @@ function setCooldown(type) { lastSubmit[type] = Date.now(); }
 let products = [];
 let currentStatusFilter = 'all';
 let currentPriceFilter = 'all';
+let currentSearchTerm = '';
 let currentProduct = null;
 
 document.getElementById('floating-messenger-btn').href = MESSENGER_LINK;
@@ -63,13 +64,15 @@ function priceBlockHtml(p) {
 function renderCards(list) {
   const grid = document.getElementById('products-grid');
   if (!list.length) {
-    grid.innerHTML = '<div class="empty">No builds in this category right now</div>';
+    grid.innerHTML = '<div class="empty">No matching products found — try a different keyword or filter</div>';
     return;
   }
+  const wishlist = window.getCart();
   grid.innerHTML = list.map(p => {
     const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
+    const inCart = wishlist.some(w => w.id === p.id);
     return `
-    <div class="card" onclick="openModal('${p.id}')">
+    <div class="card" onclick="window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="card-img-wrap">
         ${hasSale ? '<div class="sale-badge">Sale</div>' : ''}
         ${statusPillHtml(p.status || 'available')}
@@ -85,18 +88,27 @@ function renderCards(list) {
         ${priceBlockHtml(p)}
         <div class="card-price-label">${hasSale ? 'Sale price' : 'Listed price'}</div>
       </div>
-      <div class="card-footer">
-        <button class="order-btn" ${p.status !== 'available' ? 'disabled' : ''} onclick="event.stopPropagation();${p.status === 'available' ? `openModal('${p.id}')` : ''}">
+      <div class="card-footer" style="display:flex;gap:8px">
+        <a href="product.html?id=${p.id}" class="order-btn${p.status !== 'available' ? ' is-disabled' : ''}" style="flex:1;text-align:center;${p.status !== 'available' ? 'pointer-events:none' : ''}">
           ${p.status === 'available' ? 'View & order' : (p.status === 'reserved' ? 'Reserved' : 'Sold')}
+        </a>
+        <button class="cart-btn${inCart?' active':''}" data-id="${p.id}" onclick="toggleCart('${p.id}',event)" title="Add to cart"
+          style="width:42px;height:42px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;flex-shrink:0">
+          ${inCart?'✅':'🛒'}
         </button>
       </div>
     </div>
   `;
   }).join('');
+  updateCartUI();
 }
 
 function applyFilter() {
-  let filtered = currentStatusFilter === 'all' ? products : products.filter(p => (p.status || 'available') === currentStatusFilter);
+  let filtered;
+  if (currentStatusFilter === 'all') filtered = products;
+  else if (currentStatusFilter === 'sale') filtered = products.filter(p => p.sale_price && p.sale_price > 0 && p.sale_price < p.price);
+  else filtered = products.filter(p => (p.status || 'available') === currentStatusFilter);
+
   if (currentPriceFilter !== 'all') {
     const [min, max] = currentPriceFilter.split('-').map(Number);
     filtered = filtered.filter(p => {
@@ -104,8 +116,20 @@ function applyFilter() {
       return effectivePrice >= min && effectivePrice <= max;
     });
   }
+  if (currentSearchTerm) {
+    const term = currentSearchTerm.toLowerCase();
+    filtered = filtered.filter(p =>
+      (p.name || '').toLowerCase().includes(term) ||
+      (p.category || '').toLowerCase().includes(term)
+    );
+  }
   renderCards(filtered);
 }
+
+document.getElementById('product-search').addEventListener('input', e => {
+  currentSearchTerm = e.target.value.trim();
+  applyFilter();
+});
 
 document.getElementById('price-filter').addEventListener('change', e => {
   currentPriceFilter = e.target.value;
@@ -120,6 +144,21 @@ document.getElementById('filter-bar').addEventListener('click', e => {
   currentStatusFilter = btn.dataset.status;
   applyFilter();
 });
+
+// ── WISHLIST (CART) — lưu trữ & UI được xử lý bởi nav-cart.js ─────────────
+window.toggleCart = function(id, event) {
+  if (event) event.stopPropagation();
+  const list = window.getCart();
+  const idx = list.findIndex(p => String(p.id) === String(id));
+  if (idx >= 0) {
+    list.splice(idx, 1);
+  } else {
+    const p = products.find(x => String(x.id) === String(id));
+    if (p) list.push({ id: p.id, name: p.name, price: p.price, sale_price: p.sale_price, image_url: p.image_url, images: p.images });
+  }
+  window.saveCart(list);
+  window.updateCartUI();
+};
 
 async function loadProducts() {
   const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -221,8 +260,8 @@ function openBookingModal() {
       <div class="opp-price">${hasSale ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.8em;margin-right:6px">${formatPrice(p.price)}</span>` : ''}${formatPrice(effectivePrice)}</div>
     </div>
   `;
-  document.getElementById('b-name').value = '';
-  document.getElementById('b-phone').value = '';
+  document.getElementById('b-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
+  document.getElementById('b-phone').value = window.pcAuth?.profile?.phone || '';
   document.getElementById('phone-group').classList.remove('has-error');
   const dateInput = document.getElementById('b-date');
   const today = new Date().toISOString().split('T')[0];
@@ -263,7 +302,7 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
   btn.textContent = 'Checking availability...';
 
   // ── Spam protection ──
-  if (!checkCooldown('order', 'đặt hàng')) {
+  if (!checkCooldown('order', 'placing another order')) {
     btn.disabled    = false;
     btn.textContent = 'Send order request';
     return;
@@ -277,7 +316,7 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
     .single();
 
   if (!freshProduct || freshProduct.status !== 'available') {
-    showToast('⚠️ Rất tiếc, sản phẩm này vừa được đặt bởi người khác!', true);
+    showToast('⚠️ Sorry, this build was just reserved by someone else!', true);
     btn.disabled = false;
     btn.textContent = 'Send order request';
     // Reload để cập nhật trạng thái mới nhất
@@ -295,7 +334,8 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
     product_name: currentProduct.name,
     pickup_date: date,
     pickup_time: time,
-    status: 'pending'
+    status: 'pending',
+    user_id: window.pcAuth?.user?.id || null
   });
 
   if (orderError) {
@@ -306,6 +346,14 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
   }
 
   await supabase.from('products').update({ status: 'reserved' }).eq('id', currentProduct.id);
+
+  // Cập nhật lại tên/SĐT vào tài khoản (nếu đã đăng nhập) để lần sau tự điền sẵn
+  if (window.pcAuth?.user?.id) {
+    supabase.from('profiles')
+      .update({ full_name: name, phone: phone, updated_at: new Date().toISOString() })
+      .eq('id', window.pcAuth.user.id)
+      .then(({ error }) => { if (error) console.error('Profile sync error:', error); });
+  }
 
   // Gửi thông báo ntfy
   console.log('Sending ntfy...');
@@ -344,10 +392,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   });
 });
 
-// NAV
-document.getElementById('nav-toggle').addEventListener('click', () => {
-  document.getElementById('nav-links').classList.toggle('open');
-});
+// NAV toggle được xử lý bởi nav-cart.js (dùng chung cho mọi trang)
 
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -420,7 +465,7 @@ window.openReviewModal = function() {
  document.getElementById('rv-product').value = '';
 const soldProducts = products.filter(p => p.status === 'sold');
 document.getElementById('rv-product').innerHTML =
-  '<option value="">-- Chọn sản phẩm bạn đã mua --</option>' +
+  '<option value="">-- Select the product you purchased --</option>' +
   soldProducts.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('');
 
   document.getElementById('rv-comment').value = '';
@@ -442,14 +487,14 @@ document.getElementById('rv-submit').addEventListener('click', async () => {
     return;
   }
   if (!product) {
-    showToast('⚠️ Vui lòng chọn sản phẩm bạn đã mua để đánh giá', true);
+    showToast('⚠️ Please select the product you purchased to leave a review', true);
     return;
   }
   if (comment.length < 10) {
-    showToast('⚠️ Review quá ngắn, hãy mô tả thêm nhé!', true);
+    showToast('⚠️ Your review is too short — please add a bit more detail!', true);
     return;
   }
-  if (!checkCooldown('review', 'gửi review')) return;
+  if (!checkCooldown('review', 'submitting another review')) return;
 
   const btn = document.getElementById('rv-submit');
   btn.disabled    = true;
