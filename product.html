@@ -76,7 +76,13 @@
     <a class="nav-link" href="info.html">Build Guide</a>
     <a class="nav-link" href="contact.html">Contact Us</a>
     <a class="nav-link" href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook page</a>
-    <a class="nav-link" href="privacy.html">Privacy Policy</a>
+    <details class="nav-policy-dropdown">
+      <summary class="nav-link">Policies<svg class="nav-policy-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <div class="nav-policy-menu">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="returns.html">Returns &amp; Warranty</a>
+      </div>
+    </details>
   </div>
   <div class="nav-right">
     <button class="nav-toggle" id="nav-toggle">☰</button>
@@ -126,20 +132,18 @@
       <div id="booking-form-view">
         <div class="form-group"><label>Your name *</label><input type="text" id="o-name" placeholder="Full name"></div>
         <div class="form-group"><label>Phone number *</label><input type="tel" id="o-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="form-group"><label>Email <span style="color:var(--muted);font-weight:400">(optional — to receive your invoice)</span></label><input type="email" id="o-email" placeholder="you@example.com"></div>
         <div class="form-group"><label>Pickup date *</label><select id="o-date"></select></div>
         <div class="form-group"><label>Pickup time *</label><select id="o-time"></select></div>
+        <p class="order-note">&#128205; Local pickup only · Perth, WA</p>
         <button class="submit-btn" onclick="submitOrder()">&#128230; Confirm order</button>
       </div>
-      <div id="booking-success-view" class="hidden" style="text-align:center;padding:32px 0">
-        <div style="font-size:48px;margin-bottom:16px">&#9989;</div>
-        <h3 style="margin-bottom:8px">Order request received!</h3>
-        <p style="color:var(--muted);margin-bottom:20px">This build has been reserved for you.</p>
-        <div style="background:var(--surface2);border-radius:10px;padding:14px;font-size:14px;color:var(--muted);margin-bottom:20px">
-          &#128172; Please message us on Messenger to confirm your pickup address.
-        </div>
-        <a id="success-messenger-link" href="#" target="_blank" class="save-btn" style="text-decoration:none;display:inline-block">
-          &#128172; Open Messenger to confirm
-        </a>
+      <div id="booking-success-view" class="success-box hidden">
+        <div class="success-icon">✅</div>
+        <h3>Order request received!</h3>
+        <p>This build has been reserved for you.</p>
+        <div class="success-note">&#128172; Please message us on Messenger to confirm your pickup address — we'll send you the exact location there.</div>
+        <a id="success-messenger-link" class="primary-btn" href="#" target="_blank">&#128172; Open Messenger to confirm</a>
       </div>
     </div>
   </div>
@@ -169,7 +173,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_KEY, MESSENGER_LINK } from './supabase-client.js';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 document.getElementById('floating-messenger-btn').href = MESSENGER_LINK;
 document.getElementById('success-messenger-link').href = MESSENGER_LINK;
 
@@ -457,6 +461,7 @@ window.openOrderModal = function() {
   document.getElementById('booking-success-view').classList.add('hidden');
   document.getElementById('o-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
   document.getElementById('o-phone').value = window.pcAuth?.profile?.phone || '';
+  document.getElementById('o-email').value = window.pcAuth?.user?.email || '';
   document.getElementById('order-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 };
@@ -478,13 +483,15 @@ window.closeModal = function(id) {
 window.submitOrder = async function() {
   const name  = document.getElementById('o-name').value.trim();
   const phone = document.getElementById('o-phone').value.trim();
+  const email = document.getElementById('o-email').value.trim();
   const date  = document.getElementById('o-date').value;
   const time  = document.getElementById('o-time').value;
   if (!name || !phone) { alert('Please fill in your name and phone number'); return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address, or leave it blank'); return; }
   if (!currentProduct) return;
 
   const { error } = await supabase.from('orders').insert({
-    customer_name: name, customer_phone: phone,
+    customer_name: name, customer_phone: phone, customer_email: email || null,
     product_id: currentProduct.id, product_name: currentProduct.name,
     pickup_date: date, pickup_time: time, status: 'pending',
     user_id: window.pcAuth?.user?.id || null

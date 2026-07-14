@@ -16,14 +16,17 @@ function escHtml(str) {
 }
 
 // ── Spam protection ───────────────────────────────────────────────────────
-const COOLDOWN_MS = 60 * 1000; // 60 giây giữa 2 lần submit
+// Cooldown 'order' khớp với giới hạn 2 phút phía server (xem anti_spam_orders.sql)
+// để khách luôn thấy đếm ngược chính xác, không bao giờ bị server từ chối bất ngờ.
+const COOLDOWN_MS = { review: 60 * 1000, order: 2 * 60 * 1000 };
 const lastSubmit = { review: 0, order: 0 };
 
 function checkCooldown(type, label) {
   const now = Date.now();
   const diff = now - lastSubmit[type];
-  if (diff < COOLDOWN_MS) {
-    const wait = Math.ceil((COOLDOWN_MS - diff) / 1000);
+  const limit = COOLDOWN_MS[type];
+  if (diff < limit) {
+    const wait = Math.ceil((limit - diff) / 1000);
     showToast(`⏳ Please wait ${wait}s before ${label} again`, true);
     return false;
   }
@@ -262,6 +265,7 @@ function openBookingModal() {
   `;
   document.getElementById('b-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
   document.getElementById('b-phone').value = window.pcAuth?.profile?.phone || '';
+  document.getElementById('b-email').value = window.pcAuth?.user?.email || '';
   document.getElementById('phone-group').classList.remove('has-error');
   const dateInput = document.getElementById('b-date');
   const today = new Date().toISOString().split('T')[0];
@@ -281,12 +285,18 @@ document.getElementById('b-date').addEventListener('change', e => {
 document.getElementById('booking-submit-btn').addEventListener('click', async () => {
   const name = document.getElementById('b-name').value.trim();
   const phone = document.getElementById('b-phone').value.trim();
+  const email = document.getElementById('b-email').value.trim();
   const date = document.getElementById('b-date').value;
   const time = document.getElementById('b-time').value;
   const phoneGroup = document.getElementById('phone-group');
 
   if (!name || !phone || !date || !time) {
     showToast('Please fill in all fields', true);
+    return;
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Please enter a valid email address, or leave it blank', true);
     return;
   }
 
@@ -330,6 +340,7 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
   const { error: orderError } = await supabase.from('orders').insert({
     customer_name: name,
     customer_phone: phone,
+    customer_email: email || null,
     product_id: currentProduct.id,
     product_name: currentProduct.name,
     pickup_date: date,
@@ -339,7 +350,10 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
   });
 
   if (orderError) {
-    showToast('Error: ' + orderError.message, true);
+    const msg = orderError.message.includes('RATE_LIMIT')
+      ? '⏳ Bạn vừa đặt đơn gần đây, vui lòng đợi vài phút rồi thử lại.'
+      : 'Error: ' + orderError.message;
+    showToast(msg, true);
     btn.disabled = false;
     btn.textContent = 'Send order request';
     return;
@@ -459,14 +473,18 @@ document.getElementById('star-picker').addEventListener('click', e => {
   document.getElementById('star-hint').textContent = hints[selectedRating];
 });
 
-window.openReviewModal = function() {
+window.openReviewModal = async function() {
   document.getElementById('rv-name').value = '';
-  // Populate product dropdown
- document.getElementById('rv-product').value = '';
-const soldProducts = products.filter(p => p.status === 'sold');
-document.getElementById('rv-product').innerHTML =
-  '<option value="">-- Select the product you purchased --</option>' +
-  soldProducts.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('');
+  // Populate product dropdown — chỉ hiện sản phẩm đã bán VÀ chưa được ai review
+  document.getElementById('rv-product').value = '';
+  const { data: existingReviews } = await supabase.from('reviews').select('product_name');
+  const reviewedNames = new Set((existingReviews || []).map(r => r.product_name));
+  const soldProducts = products.filter(p => p.status === 'sold' && !reviewedNames.has(p.name));
+  document.getElementById('rv-product').innerHTML =
+    (soldProducts.length
+      ? '<option value="">-- Select the product you purchased --</option>' +
+        soldProducts.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('')
+      : '<option value="">-- No products available to review --</option>');
 
   document.getElementById('rv-comment').value = '';
   selectedRating = 0;
@@ -508,7 +526,13 @@ document.getElementById('rv-submit').addEventListener('click', async () => {
   btn.disabled    = false;
   btn.textContent = 'Submit review';
 
-  if (error) { showToast('Error: ' + error.message, true); return; }
+  if (error) {
+    const msg = (error.code === '23505' || error.message.includes('reviews_product_name_unique'))
+      ? '⚠️ This product just got reviewed by someone else. Please pick another product.'
+      : 'Error: ' + error.message;
+    showToast(msg, true);
+    return;
+  }
 
   setCooldown('review');
   closeModal('review-modal');

@@ -50,8 +50,97 @@ async function signInWithGoogle() {
 }
 
 async function signOut() {
+  clearTimeout(refreshTimer);
   await supabase.auth.signOut();
 }
+
+// ── MANUAL TOKEN REFRESH ─────────────────────────────────────────────────
+// Lý do tự làm thay vì để Supabase SDK tự động (autoRefreshToken) refresh:
+// mặc định, hễ 1 lần gọi refresh thất bại (kể cả do Supabase quá tải/429,
+// lỗi mạng tạm thời, lỗi 500...) SDK sẽ coi như phiên đăng nhập không còn
+// hợp lệ và tự động đăng xuất người dùng — kể cả khi refresh token của họ
+// vẫn còn hoàn toàn hợp lệ. Ở đây mình tự kiểm soát: CHỈ đăng xuất khi
+// Supabase xác nhận rõ ràng refresh token đã hết hạn/không hợp lệ; các lỗi
+// tạm thời khác sẽ tự thử lại (backoff) mà không đá người dùng ra ngoài.
+let refreshTimer = null;
+
+function scheduleRefresh(session) {
+  clearTimeout(refreshTimer);
+  if (!session?.expires_at) return;
+  const msUntilExpiry = session.expires_at * 1000 - Date.now();
+  // Refresh trước khi hết hạn 60s; nếu đã gần/hết hạn sẵn thì thử refresh gần như ngay
+  const delay = Math.max(msUntilExpiry - 60_000, 3_000);
+  refreshTimer = setTimeout(() => attemptRefresh(), delay);
+}
+
+async function attemptRefresh(retryCount = 0) {
+  // Không còn ai đăng nhập (đã signOut chủ động) → khỏi refresh
+  if (!currentUser) return;
+
+  // Chốt chặn cứng: dù thế nào cũng không thử quá 6 lần liên tiếp (~5 phút)
+  // — tránh mọi khả năng lặp vô hạn do lỗi logic chưa lường trước.
+  if (retryCount >= 6) {
+    console.warn('Refresh thất bại quá nhiều lần liên tiếp, dừng thử và đăng xuất.');
+    await supabase.auth.signOut();
+    return;
+  }
+
+  const tokenBeforeAttempt = (await supabase.auth.getSession()).data?.session?.access_token || null;
+  const { data, error } = await supabase.auth.refreshSession();
+
+  if (error) {
+    // Lỗi rõ ràng là refresh token hết hạn/không hợp lệ → đăng xuất thật
+    const status = error.status;
+    const msg = (error.message || '').toLowerCase();
+    const isDefinitiveAuthError =
+      status === 400 ||
+      status === 401 ||
+      msg.includes('invalid') ||
+      msg.includes('expired') ||
+      msg.includes('not found');
+
+    if (isDefinitiveAuthError) {
+      // QUAN TRỌNG: trước khi kết luận "hết hạn thật", kiểm tra lại xem có
+      // phải 1 tab KHÁC vừa refresh thành công và ghi token MỚI vào storage
+      // hay không. Chỉ tính là "tab khác vừa refresh xong" khi access_token
+      // hiện tại KHÁC với token lúc bắt đầu thử (tức thực sự có gì đó đổi),
+      // VÀ token đó chưa hết hạn — nếu không sẽ dễ lặp vô hạn với chính
+      // phiên cũ đã hỏng (đây là lỗi từng gặp phải, đã sửa ở đây).
+      const { data: freshCheck } = await supabase.auth.getSession();
+      const freshSession = freshCheck?.session;
+      const isGenuinelyNewer =
+        freshSession &&
+        freshSession.access_token !== tokenBeforeAttempt &&
+        freshSession.expires_at * 1000 > Date.now();
+
+      if (isGenuinelyNewer) {
+        console.warn('Tab khác đã refresh thành công — dùng lại phiên mới, không đăng xuất.');
+        scheduleRefresh(freshSession);
+        return;
+      }
+      console.warn('Phiên đăng nhập đã hết hạn thật sự, đăng xuất:', error.message);
+      await supabase.auth.signOut();
+      return;
+    }
+
+    // Lỗi tạm thời (429 quá tải, 500, mất mạng...) → thử lại với backoff, KHÔNG đăng xuất
+    console.warn(`Refresh token lỗi tạm thời (sẽ thử lại, lần ${retryCount + 1}/6): ${error.message}`);
+    const delay = Math.min(5000 * 2 ** retryCount, 60_000);
+    refreshTimer = setTimeout(() => attemptRefresh(retryCount + 1), delay);
+    return;
+  }
+
+  if (data?.session) scheduleRefresh(data.session);
+}
+
+// Khi tab quay lại foreground hoặc mạng có lại → kiểm tra/refresh ngay,
+// vì setTimeout có thể bị trình duyệt "đóng băng" lúc tab ở nền.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentUser) attemptRefresh();
+});
+window.addEventListener('online', () => {
+  if (currentUser) attemptRefresh();
+});
 
 // ── Logout confirm modal ─────────────────────────────────────────────────
 function ensureLogoutModal() {
@@ -119,6 +208,8 @@ function renderAccountUI() {
 
 async function handleAuthChange(session, event) {
   currentUser = session?.user || null;
+  if (session) scheduleRefresh(session);
+  else clearTimeout(refreshTimer);
   renderAccountUI(); // hiện avatar ngay bằng data Google, khỏi chờ query bảng profiles
   currentProfile = currentUser ? await ensureProfile(currentUser) : null;
   renderAccountUI(); // cập nhật lại nếu profile có tên/SĐT riêng đã lưu trước đó

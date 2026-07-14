@@ -213,3 +213,19 @@ if (cartOverlayEl) {
 
 // Cập nhật số giỏ hàng ngay khi trang load
 updateCartUI();
+
+// "Chính sách" nav dropdown: đóng khi bấm ra ngoài, hoặc khi bấm 1 mục bên trong
+document.querySelectorAll('.nav-policy-dropdown').forEach((dd) => {
+  dd.addEventListener('toggle', () => {
+    if (dd.open) {
+      document.querySelectorAll('.nav-policy-dropdown').forEach((other) => {
+        if (other !== dd) other.open = false;
+      });
+    }
+  });
+});
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.nav-policy-dropdown[open]').forEach((dd) => {
+    if (!dd.contains(e.target) || e.target.closest('.nav-policy-menu a')) dd.open = false;
+  });
+});

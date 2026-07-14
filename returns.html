@@ -3,16 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact – JohnnyPC</title>
-<meta name="description" content="Get in touch with JohnnyPC via Messenger. Local pickup in the Ballajura area, Perth WA. 3–12 month warranty on every build.">
-<meta property="og:title" content="Contact – JohnnyPC">
-<meta property="og:description" content="Get in touch with JohnnyPC. Local pickup, Ballajura WA.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://johnnytrangpc.vercel.app/contact.html">
-<meta property="og:image" content="https://johnnytrangpc.vercel.app/og-image.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://johnnytrangpc.vercel.app/og-image.jpg">
-<link rel="canonical" href="https://johnnytrangpc.vercel.app/contact.html">
+<title>Returns & Warranty Policy – JohnnyPC</title>
+<meta name="description" content="Warranty coverage, exclusions, and how to make a claim for your JohnnyPC custom-built PC.">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,13 +30,13 @@
     <a class="nav-link" href="index.html">All Products</a>
     <a class="nav-link" href="specials.html">Specials and Promotions</a>
     <a class="nav-link" href="info.html">Build Guide</a>
-    <a class="nav-link active" href="contact.html">Contact Us</a>
+    <a class="nav-link" href="contact.html">Contact Us</a>
     <a class="nav-link" href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook page</a>
     <details class="nav-policy-dropdown">
       <summary class="nav-link">Policies<svg class="nav-policy-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></summary>
       <div class="nav-policy-menu">
         <a href="privacy.html">Privacy Policy</a>
-        <a href="returns.html">Returns &amp; Warranty</a>
+        <a href="returns.html" class="active">Returns &amp; Warranty</a>
       </div>
     </details>
   </div>
@@ -71,60 +63,47 @@
 </div>
 <div id="cart-overlay" onclick="toggleCartDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499"></div>
 
+<div class="content">
+  <h1>Returns &amp; Warranty Policy</h1>
+  <div class="updated">Last updated: July 2026</div>
 
-<section class="contact-section">
-  <div class="contact-inner">
-    <div class="contact-info">
-      <h1>Get in touch</h1>
-      <p>All questions, build advice, and pickup scheduling happen over Messenger. I usually reply within a few hours.</p>
-      <div class="contact-list">
-        <div class="contact-item">
-          <div class="contact-icon">
-            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.1 0 0 7.4 0 16.6c0 5.2 2.6 9.9 6.7 12.9V36l6.1-3.4c1.6.5 3.4.7 5.2.7 9.9 0 18-7.4 18-16.6S27.9 0 18 0z" fill="#0080FF"/><path d="M8.2 21.9 14.6 15l5.5 4.2L26.9 11l-6.4 6.9-5.5-4.2-7 8.2z" fill="#fff"/></svg>
-          </div>
-          Messenger — usually replies within a few hours
-        </div>
-        <div class="contact-item"><div class="contact-icon">📍</div> Ballajura area, Perth WA</div>
-        <div class="contact-item"><div class="contact-icon">🛡️</div> 3–12 month warranty on every build</div>
-        <div class="contact-item"><div class="contact-icon">🕐</div> Pickup: Mon–Fri after 5pm · Sat–Sun anytime</div>
-        <div class="contact-item"><div class="contact-icon">📧</div> duchuynhtrang@gmail.com</div>
-      </div>
-      <div class="map-wrap">
-        <iframe loading="lazy" src="https://www.google.com/maps?q=Ballajura,+WA,+Australia&output=embed"></iframe>
-      </div>
-    </div>
-    <div class="contact-cta">
-      <h3>Send a message</h3>
-      <p>Ask about a build, pricing, or arrange a pickup time. We'll get back to you on Messenger.</p>
-      <a class="primary-btn" id="contact-messenger-btn" href="#" target="_blank">💬 Open Messenger</a>
-      <div class="response-note"><span class="live-dot"></span>Usually online during the day</div>
+  <h2>Before you buy</h2>
+  <p>Every PC listed is a used/refurbished, hand-built machine. It's fully tested and confirmed working before it's listed for sale. You're welcome — and encouraged — to inspect and test the PC in person at pickup <strong>before</strong> the sale is finalised. Once you've checked it over and taken it home, the sale is complete.</p>
 
-      <div class="form-divider"><span>or leave a message here</span></div>
+  <h2>What the warranty covers</h2>
+  <p>Each build comes with a warranty period stated on the product listing (3, 6, or 12 months — check the specific listing or your invoice). During this period, the warranty covers:</p>
+  <ul>
+    <li>Genuine hardware faults arising from normal use (e.g. a component failing on its own)</li>
+    <li>Parts not performing as described at the time of sale</li>
+  </ul>
 
-      <div id="contact-form-view">
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" id="cf-name" placeholder="Your name">
-        </div>
-        <div class="form-group">
-          <label>Email or phone *</label>
-          <input type="text" id="cf-contact" placeholder="Email or phone number">
-        </div>
-        <div class="form-group">
-          <label>Message *</label>
-          <textarea id="cf-message" placeholder="What would you like to ask?"></textarea>
-        </div>
-        <button class="secondary-btn" id="contact-form-submit">Send message</button>
-      </div>
-      <div id="contact-form-success" class="hidden">
-        <div style="font-size:36px;margin-bottom:8px">✅</div>
-        <p style="color:var(--text);font-weight:600;margin-bottom:4px">Message sent!</p>
-        <p style="font-size:13px;color:var(--muted)">We'll get back to you soon.</p>
-      </div>
-    </div>
-  </div>
-</section>
+  <h2>What isn't covered</h2>
+  <p>The warranty does <strong>not</strong> cover:</p>
+  <ul>
+    <li>Software issues — operating system problems, driver conflicts, viruses/malware, or anything caused by software you install</li>
+    <li>Physical damage — drops, spills, liquid damage, or damage from moving/transporting the PC</li>
+    <li>Misuse — overclocking beyond safe limits, unauthorised modifications, opening/tampering with components, inadequate ventilation, or use outside normal conditions</li>
+    <li>Normal wear and tear (used builds may show minor cosmetic wear — this is expected and disclosed at time of sale, not a fault)</li>
+    <li>Change of mind — <strong>we don't offer refunds or returns simply because you've changed your mind</strong> after taking the PC home. Please make sure to fully inspect and test the build at pickup.</li>
+  </ul>
 
+  <h2>How to make a warranty claim</h2>
+  <p>If something covered by warranty goes wrong within your warranty period:</p>
+  <ul>
+    <li>Message us on <a href="https://www.facebook.com/codepcstore" target="_blank" rel="noopener">Facebook/Messenger</a> or via the <a href="contact.html">Contact page</a></li>
+    <li>Include your invoice number (found on your invoice, format <code>INV-XXXXXXXX</code>) and a description of the issue</li>
+    <li>We'll get back to you to arrange next steps — this may involve diagnosing the issue remotely first, or bringing the PC back for inspection</li>
+  </ul>
+  <p>If a fault is confirmed to be covered by warranty, we'll repair or replace the faulty part at no extra cost. If a fault turns out to be outside the warranty (see exclusions above), we'll let you know before doing any paid repair work, so you can decide how you'd like to proceed.</p>
+
+  <h2>Pickup &amp; order changes</h2>
+  <p>Placing an order on this site reserves a build for you — it doesn't finalise the sale. Full payment and handover happen in person at pickup. Need to cancel or reschedule a reserved order? Message us on Messenger as soon as you can.</p>
+
+  <h2>Questions</h2>
+  <p>Anything not covered here, or unsure if your situation qualifies? Reach out via <a href="contact.html">our Contact page</a> — happy to help sort it out.</p>
+</div>
+
+<!-- FOOTER -->
 <a class="floating-messenger" id="floating-messenger-btn" href="#" target="_blank">
   <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.1 0 0 7.4 0 16.6c0 5.2 2.6 9.9 6.7 12.9V36l6.1-3.4c1.6.5 3.4.7 5.2.7 9.9 0 18-7.4 18-16.6S27.9 0 18 0z" fill="#fff"/><path d="M8.2 21.9 14.6 15l5.5 4.2L26.9 11l-6.4 6.9-5.5-4.2-7 8.2z" fill="#0066ff"/></svg>
 </a>

@@ -11,7 +11,16 @@ export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 // ⚠️ Update this when you set up a Facebook Page (m.me only works with Pages, not personal profiles)
 export const MESSENGER_LINK = 'https://m.me/codepcstore';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+// autoRefreshToken: false — auth.js tự quản lý việc refresh token (có retry/backoff),
+// để khi Supabase lỗi tạm thời (429, 500, mất mạng...) KHÔNG bị SDK tự động đăng xuất oan.
+// Chi tiết lý do: xem comment trong auth.js phần "MANUAL TOKEN REFRESH".
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: false,
+    detectSessionInUrl: true,
+  }
+});
 
 export function formatPrice(p) {
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(p);

@@ -1,10 +1,8 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-  const SUPABASE_URL = 'https://ahquyhbbnrtdlaydrrnm.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFocXV5aGJibnJ0ZGxheWRycm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg1MTgsImV4cCI6MjA5Nzc1NDUxOH0.vf1pMfXU5b7gvnC9AiFChw96WQZQMHMEeTH8R5tcUj4';
-  // SERVICE_KEY đã được xóa — dùng RLS policy "authenticated" thay thế
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+import { supabase } from './supabase-client.js';
+  // ⚠️ Dùng CHUNG 1 client Supabase với toàn bộ site (import từ supabase-client.js)
+  // thay vì tự tạo client riêng — tạo client riêng trỏ cùng project sẽ khiến 2 client
+  // giành nhau refresh token (refresh token chỉ dùng được 1 lần), gây ra hiện tượng
+  // "vừa đăng nhập xong bị đăng xuất ngay".
 
   // ─── STATE ───────────────────────────────────────────────────────────────
   let products = [];
@@ -14,9 +12,24 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
   let realtimeStarted = false; // flag chặn gọi nhiều lần
 
   // ─── AUTH ─────────────────────────────────────────────────────────────────
+  const ADMIN_EMAIL = 'duchuynhtrang@gmail.com';
+
   supabase.auth.onAuthStateChange((event, session) => {
+    if (session && session.user?.email !== ADMIN_EMAIL) {
+      // Không phải tài khoản admin — chặn ngay, không cho vào xem giao diện admin.
+      // (Lớp bảo vệ thật sự nằm ở RLS trong database — cái này chỉ để UX rõ ràng hơn.)
+      supabase.auth.signOut();
+      const err = document.getElementById('login-error');
+      if (err) err.textContent = '❌ Tài khoản này không có quyền truy cập trang quản trị.';
+      showLogin();
+      return;
+    }
     if (session) showAdmin();
-    else { realtimeStarted = false; showLogin(); }
+    else {
+      realtimeStarted = false;
+      supabase.removeAllChannels(); // dọn kênh realtime cũ, tránh lỗi "already subscribed" khi đăng nhập lại
+      showLogin();
+    }
   });
 
   window.login = async function () {
@@ -47,21 +60,25 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
   function startRealtime() {
     if (realtimeStarted) return; // chặn gọi lại
     realtimeStarted = true;
-    supabase.channel('realtime-orders')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
-        await loadOrders();
-        updateStats();
-        showNotification('📦 Đơn hàng mới!', payload.new.customer_name + ' vừa đặt ' + (payload.new.product_name || 'một sản phẩm'));
-      })
-      .subscribe();
+    try {
+      supabase.channel('realtime-orders')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+          await loadOrders();
+          updateStats();
+          showNotification('📦 Đơn hàng mới!', payload.new.customer_name + ' vừa đặt ' + (payload.new.product_name || 'một sản phẩm'));
+        })
+        .subscribe();
 
-    supabase.channel('realtime-messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-        await loadMessages();
-        updateStats();
-        showNotification('💬 Tin nhắn mới!', payload.new.name + ': ' + payload.new.message.slice(0, 60) + '...');
-      })
-      .subscribe();
+      supabase.channel('realtime-messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
+          await loadMessages();
+          updateStats();
+          showNotification('💬 Tin nhắn mới!', payload.new.name + ': ' + payload.new.message.slice(0, 60) + '...');
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('Không khởi tạo được realtime (không ảnh hưởng chức năng chính):', e);
+    }
   }
 
   function showNotification(title, body) {
@@ -97,7 +114,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
   }
 
   // ─── TABS ─────────────────────────────────────────────────────────────────
-  const TAB_NAMES = ['dashboard', 'products', 'orders', 'messages', 'reviews'];
+  const TAB_NAMES = ['dashboard', 'products', 'orders', 'messages', 'reviews', 'backup'];
   window.switchTab = function (tab) {
     document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', TAB_NAMES[i] === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -406,16 +423,21 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
   };
 
   // ─── ORDERS TABLE ─────────────────────────────────────────────────────────
+  function invoiceNumOf(orderId) {
+    return 'INV-' + String(orderId).slice(0, 8).toUpperCase();
+  }
+
   function renderOrdersTable(list) {
     const tb = document.getElementById('orders-table');
     const statusLabel = { pending: 'Pending', confirmed: 'Confirmed', done: 'Completed', cancelled: 'Cancelled' };
     const data = list !== undefined ? list : orders;
     if (!data.length) {
-      tb.innerHTML = '<tr class="empty-row"><td colspan="6">Không tìm thấy đơn hàng nào</td></tr>';
+      tb.innerHTML = '<tr class="empty-row"><td colspan="7">Không tìm thấy đơn hàng nào</td></tr>';
       return;
     }
     tb.innerHTML = data.map(o => `
       <tr>
+        <td><code style="font-size:12px">${invoiceNumOf(o.id)}</code> <button onclick="copyText('${invoiceNumOf(o.id)}')" title="Copy invoice #" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">📋</button></td>
         <td><strong>${escHtml(o.customer_name)}</strong></td>
         <td>${escHtml(o.customer_phone)} <button onclick="copyText('${escHtml(o.customer_phone)}')" title="Copy SĐT" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">📋</button></td>
         <td>${escHtml(o.product_name || '—')}</td>
@@ -430,7 +452,12 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
         </td>
         <td>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${o.status === 'done' ? `
             <button class="edit-btn" data-id="${o.id}" onclick="printInvoice(this)" style="white-space:nowrap">🧾 Invoice</button>
+            ${(o.user_id || o.customer_email)
+              ? `<button class="edit-btn" data-id="${o.id}" onclick="sendInvoiceEmail(this)" style="white-space:nowrap">📧 Send invoice</button>`
+              : `<button class="edit-btn" disabled title="Khách không để lại email" style="white-space:nowrap;opacity:.4;cursor:not-allowed">📧 Send invoice</button>`}
+            ` : ''}
             <button class="del-btn" data-id="${o.id}" onclick="deleteOrderById(this)" style="white-space:nowrap">🗑️ Xóa</button>
           </div>
         </td>
@@ -538,6 +565,40 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
     const t = Math.max(0, basePrice - d);
     const f = new Intl.NumberFormat('en-AU', { style:'currency', currency:'AUD' });
     document.getElementById('cell-total').textContent = f.format(t);
+  };
+
+  window.sendInvoiceEmail = async function(btn) {
+    const id = btn.getAttribute('data-id');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Sending...';
+
+    const { data, error } = await supabase.functions.invoke('send-invoice', {
+      body: { orderId: id },
+    });
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (error || data?.error) {
+      let errBody = data;
+      if (error && error.context && typeof error.context.json === 'function') {
+        try { errBody = await error.context.json(); } catch (_) { /* ignore */ }
+      }
+      const errMsg = errBody?.error || error?.message || 'Unknown error';
+      if (errMsg === 'GUEST_ORDER_NO_EMAIL') {
+        showToast('⚠️ Khách vãng lai không có email để gửi', true);
+      } else if (errMsg === 'Not authorized') {
+        showToast(`❌ Not authorized — caller: ${errBody?.debug_callerEmail} | secret: ${errBody?.debug_adminEmailSecret}`, true);
+        console.error('send-invoice debug:', errBody);
+      } else {
+        showToast('❌ Gửi email thất bại: ' + errMsg, true);
+        console.error('send-invoice debug:', errBody);
+      }
+      return;
+    }
+
+    showToast(`✅ Đã gửi hóa đơn tới ${data.sentTo}`);
   };
 
   window.printInvoice = function(btn) {
@@ -755,7 +816,9 @@ function downloadImage(){
       const matchSearch = !keyword
         || (o.customer_name  || '').toLowerCase().includes(keyword)
         || (o.customer_phone || '').toLowerCase().includes(keyword)
-        || (o.product_name   || '').toLowerCase().includes(keyword);
+        || (o.product_name   || '').toLowerCase().includes(keyword)
+        || invoiceNumOf(o.id).toLowerCase().includes(keyword.replace(/^inv-?/, ''))
+        || invoiceNumOf(o.id).toLowerCase().includes(keyword);
       const matchStatus = status === 'all' || o.status === status;
       return matchSearch && matchStatus;
     });
@@ -951,6 +1014,51 @@ function downloadImage(){
     if (error) { showToast('Error: ' + error.message, true); return; }
     showToast('🗑️ Review deleted');
     await loadReviews();
+  };
+
+  // ─── BACKUP EXPORT (CSV) ─────────────────────────────────────────────────
+  function toCsv(rows) {
+    if (!rows || !rows.length) return '';
+    const headers = Object.keys(rows[0]);
+    const escapeCell = (v) => {
+      if (v === null || v === undefined) return '';
+      let s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      s = s.replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    };
+    const lines = [headers.join(',')];
+    for (const row of rows) lines.push(headers.map(h => escapeCell(row[h])).join(','));
+    return lines.join('\r\n');
+  }
+
+  function downloadCsv(filename, rows) {
+    const csv = '\uFEFF' + toCsv(rows); // BOM để Excel hiển thị đúng tiếng Việt có dấu
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  window.exportBackup = async function(which) {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const tables = which === 'all' ? ['products', 'orders', 'messages', 'reviews'] : [which];
+
+    for (const t of tables) {
+      const { data, error } = await supabase.from(t).select('*').order('created_at', { ascending: false });
+      if (error) { showToast(`❌ Lỗi export ${t}: ${error.message}`, true); continue; }
+      downloadCsv(`${t}_backup_${dateStr}.csv`, data || []);
+      // Chờ 1 chút giữa các lần tải để trình duyệt không chặn download hàng loạt
+      if (tables.length > 1) await new Promise(r => setTimeout(r, 400));
+    }
+
+    showToast(`✅ Đã tải backup: ${tables.join(', ')}`);
+    document.getElementById('backup-last-export').textContent =
+      `Lần export gần nhất: ${new Date().toLocaleString('vi-VN')}`;
   };
 
   // ─── UTILITIES ────────────────────────────────────────────────────────────

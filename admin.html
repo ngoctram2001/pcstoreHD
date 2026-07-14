@@ -216,6 +216,7 @@
     <div class="tab" onclick="switchTab('orders')">📦 Orders <span class="tab-badge" id="badge-orders" style="display:none"></span></div>
     <div class="tab" onclick="switchTab('messages')">💬 Messages <span class="tab-badge" id="badge-messages" style="display:none"></span></div>
     <div class="tab" onclick="switchTab('reviews')">⭐ Reviews <span class="tab-badge" id="badge-reviews" style="display:none"></span></div>
+    <div class="tab" onclick="switchTab('backup')">📦 Backup</div>
   </div>
 
   <!-- DASHBOARD -->
@@ -281,7 +282,7 @@
 
     <!-- FILTER BAR -->
     <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-      <input type="text" id="order-search" placeholder="🔍  Tìm tên khách hoặc sản phẩm..."
+      <input type="text" id="order-search" placeholder="🔍  Tìm số hóa đơn, tên khách, SĐT hoặc sản phẩm..."
         oninput="applyOrderFilter()"
         style="flex:1;min-width:200px;background:#2b211a;border:1px solid #3d3024;border-radius:8px;padding:10px 14px;color:#f7f0e8;font-size:14px;font-family:inherit;">
       <select id="order-status-filter" onchange="applyOrderFilter()"
@@ -296,7 +297,7 @@
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Customer</th><th>Phone</th><th>Product</th><th>Pickup</th><th>Status</th><th>Update status</th><th>Action</th>
+          <th>Invoice #</th><th>Customer</th><th>Phone</th><th>Product</th><th>Pickup</th><th>Status</th><th>Update status</th><th>Action</th>
         </tr></thead>
         <tbody id="orders-table"></tbody>
       </table>
@@ -361,6 +362,28 @@
         <tbody id="reviews-table"></tbody>
       </table>
     </div>
+  </div>
+
+  <!-- BACKUP -->
+  <div class="tab-content" id="tab-backup">
+    <div class="section-hdr">
+      <h2>Backup dữ liệu</h2>
+    </div>
+    <p style="color:#a8957f;font-size:14px;max-width:640px;margin-bottom:24px;line-height:1.7">
+      Gói Free của Supabase không có sao lưu tự động. Nên tải file backup định kỳ (khuyên 1 lần/tuần) và lưu ở nơi khác
+      (Google Drive, máy tính...) để phòng trường hợp mất/xóa nhầm dữ liệu. File tải về là <strong>CSV</strong> — mở được
+      trực tiếp bằng Excel / Google Sheets.
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="edit-btn" onclick="exportBackup('products')">🖥️ Export Products</button>
+      <button class="edit-btn" onclick="exportBackup('orders')">📦 Export Orders</button>
+      <button class="edit-btn" onclick="exportBackup('messages')">💬 Export Messages</button>
+      <button class="edit-btn" onclick="exportBackup('reviews')">⭐ Export Reviews</button>
+    </div>
+    <div style="margin-top:16px">
+      <button class="submit-btn" style="width:auto;padding:14px 28px" onclick="exportBackup('all')">📦 Export tất cả (4 file)</button>
+    </div>
+    <div id="backup-last-export" style="margin-top:20px;font-size:13px;color:#a8957f"></div>
   </div>
 </div>
 
