@@ -68,14 +68,28 @@ function scheduleRefresh(session) {
   clearTimeout(refreshTimer);
   if (!session?.expires_at) return;
   const msUntilExpiry = session.expires_at * 1000 - Date.now();
-  // Refresh trước khi hết hạn 60s; nếu đã gần/hết hạn sẵn thì thử refresh gần như ngay
-  const delay = Math.max(msUntilExpiry - 60_000, 3_000);
+  // Refresh trước khi hết hạn 60s; nếu đã gần/hết hạn sẵn thì thử refresh gần như ngay.
+  // Thêm "jitter" ngẫu nhiên (0–8s) để các tab mở cùng lúc KHÔNG cùng gọi refresh
+  // vào đúng 1 thời điểm — đây là nguyên nhân từng gây lỗi 429 (rate limit) khi
+  // mở nhiều tab, khiến Supabase từ chối bớt request và tưởng nhầm là hết phiên.
+  const jitter = Math.random() * 8_000;
+  const delay = Math.max(msUntilExpiry - 60_000, 3_000) + jitter;
   refreshTimer = setTimeout(() => attemptRefresh(), delay);
 }
 
 async function attemptRefresh(retryCount = 0) {
   // Không còn ai đăng nhập (đã signOut chủ động) → khỏi refresh
   if (!currentUser) return;
+
+  // Trước khi tự refresh, kiểm tra xem có phải 1 TAB KHÁC đã refresh xong xuôi rồi
+  // hay không (session mới hơn, còn hạn) — nếu có thì dùng luôn, khỏi tốn thêm
+  // 1 lượt gọi API refresh (giảm nguy cơ dội request gây rate-limit 429 khi mở nhiều tab).
+  const { data: preCheck } = await supabase.auth.getSession();
+  const preSession = preCheck?.session;
+  if (preSession && preSession.expires_at * 1000 - Date.now() > 90_000) {
+    scheduleRefresh(preSession);
+    return;
+  }
 
   // Chốt chặn cứng: dù thế nào cũng không thử quá 6 lần liên tiếp (~5 phút)
   // — tránh mọi khả năng lặp vô hạn do lỗi logic chưa lường trước.
@@ -89,15 +103,18 @@ async function attemptRefresh(retryCount = 0) {
   const { data, error } = await supabase.auth.refreshSession();
 
   if (error) {
-    // Lỗi rõ ràng là refresh token hết hạn/không hợp lệ → đăng xuất thật
+    // Lỗi rõ ràng là refresh token hết hạn/không hợp lệ → đăng xuất thật.
+    // LƯU Ý: lỗi 429 (rate limit) KHÔNG được tính là lỗi hết hạn thật —
+    // đây chỉ là bị giới hạn tần suất gọi API tạm thời, không phải phiên hỏng.
     const status = error.status;
     const msg = (error.message || '').toLowerCase();
     const isDefinitiveAuthError =
-      status === 400 ||
-      status === 401 ||
-      msg.includes('invalid') ||
-      msg.includes('expired') ||
-      msg.includes('not found');
+      status !== 429 &&
+      (status === 400 ||
+       status === 401 ||
+       msg.includes('invalid') ||
+       msg.includes('expired') ||
+       msg.includes('not found'));
 
     if (isDefinitiveAuthError) {
       // QUAN TRỌNG: trước khi kết luận "hết hạn thật", kiểm tra lại xem có
@@ -123,9 +140,11 @@ async function attemptRefresh(retryCount = 0) {
       return;
     }
 
-    // Lỗi tạm thời (429 quá tải, 500, mất mạng...) → thử lại với backoff, KHÔNG đăng xuất
+    // Lỗi tạm thời (429 quá tải, 500, mất mạng...) → thử lại với backoff, KHÔNG đăng xuất.
+    // Riêng 429 (rate limit) chờ lâu hơn hẳn, vì thử lại quá nhanh chỉ càng bị chặn tiếp.
     console.warn(`Refresh token lỗi tạm thời (sẽ thử lại, lần ${retryCount + 1}/6): ${error.message}`);
-    const delay = Math.min(5000 * 2 ** retryCount, 60_000);
+    const base = status === 429 ? 15_000 : 5_000;
+    const delay = Math.min(base * 2 ** retryCount, 120_000);
     refreshTimer = setTimeout(() => attemptRefresh(retryCount + 1), delay);
     return;
   }
