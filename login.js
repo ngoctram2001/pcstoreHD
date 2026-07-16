@@ -1,5 +1,6 @@
 // ============================================================
-// JohnnyPC — login.html logic
+// JohnnyPC — login.html logic (đăng nhập bằng mã OTP qua email,
+// không dùng mật khẩu — giống kiểu Claude)
 // ============================================================
 
 import { supabase } from './supabase-client.js';
@@ -17,168 +18,160 @@ if (consentOverlay) {
   });
 }
 
-const tabSignIn = document.getElementById('tab-signin');
-const tabSignUp = document.getElementById('tab-signup');
-const form = document.getElementById('auth-form');
-const emailInput = document.getElementById('auth-email');
-const passwordInput = document.getElementById('auth-password');
-const confirmField = document.getElementById('confirm-password-field');
-const confirmInput = document.getElementById('auth-password-confirm');
-const errorEl = document.getElementById('auth-error');
-const submitBtn = document.getElementById('auth-submit-btn');
-const forgotLinkWrap = document.getElementById('forgot-link-wrap');
-const forgotLink = document.getElementById('forgot-link');
-const signupConsent = document.getElementById('signup-consent');
-const formArea = document.getElementById('login-form-area');
-const successBox = document.getElementById('login-success-box');
-const successMsg = document.getElementById('login-success-msg');
+const stepEmail   = document.getElementById('step-email');
+const stepCode    = document.getElementById('step-code');
+const emailForm   = document.getElementById('email-form');
+const codeForm    = document.getElementById('code-form');
+const emailInput  = document.getElementById('auth-email');
+const codeInput   = document.getElementById('auth-code');
+const emailError  = document.getElementById('auth-error');
+const codeError   = document.getElementById('code-error');
+const sendCodeBtn = document.getElementById('send-code-btn');
+const verifyBtn   = document.getElementById('verify-code-btn');
+const codeSentEmailEl = document.getElementById('code-sent-email');
+const resendLink   = document.getElementById('resend-code-link');
+const changeEmailLink = document.getElementById('change-email-link');
+const expiryNoteEl = document.getElementById('code-expiry-note');
 
-let mode = 'signin'; // 'signin' | 'signup' | 'forgot'
-let pendingSignupEmail = '';
+const OTP_EXPIRY_SECONDS = 120; // khớp với "Email OTP expiration" cấu hình trong Supabase
+let pendingEmail = '';
+let resendCooldownUntil = 0;
+let expiryTimerInterval = null;
+let codeExpiresAt = 0;
+
+function formatCountdown(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function startExpiryCountdown() {
+  clearInterval(expiryTimerInterval);
+  codeExpiresAt = Date.now() + OTP_EXPIRY_SECONDS * 1000;
+
+  const tick = () => {
+    const remaining = Math.max(0, Math.round((codeExpiresAt - Date.now()) / 1000));
+    if (remaining <= 0) {
+      expiryNoteEl.textContent = 'This code has expired — please request a new one.';
+      expiryNoteEl.style.color = 'var(--red)';
+      clearInterval(expiryTimerInterval);
+      return;
+    }
+    expiryNoteEl.style.color = 'var(--muted)';
+    expiryNoteEl.textContent = `Code valid for ${formatCountdown(remaining)}`;
+  };
+  tick();
+  expiryTimerInterval = setInterval(tick, 1000);
+}
 
 function redirectTarget() {
   const params = new URLSearchParams(window.location.search);
   return params.get('redirect') || 'index.html';
 }
 
-function cleanUrl(path) {
-  return window.location.origin + '/' + path;
-}
+function showEmailError(msg) { emailError.textContent = msg; emailError.style.display = 'block'; }
+function clearEmailError() { emailError.style.display = 'none'; emailError.textContent = ''; }
+function showCodeError(msg) { codeError.textContent = msg; codeError.style.display = 'block'; }
+function clearCodeError() { codeError.style.display = 'none'; codeError.textContent = ''; }
 
-function showError(msg, showResend = false, email = '') {
-  errorEl.innerHTML = msg + (showResend
-    ? ` <a href="#" id="resend-confirm-link" style="color:var(--accent);font-weight:600">Resend confirmation email</a>`
-    : '');
-  errorEl.style.display = 'block';
-  if (showResend) {
-    document.getElementById('resend-confirm-link').addEventListener('click', async (e) => {
-      e.preventDefault();
-      const link = e.target;
-      link.textContent = 'Sending...';
-      const { error } = await supabase.auth.resend({ type: 'signup', email });
-      link.textContent = error ? error.message : 'Sent! Check your inbox';
-    });
-  }
-}
-function clearError() {
-  errorEl.style.display = 'none';
-  errorEl.innerHTML = '';
-}
-
-function setMode(newMode) {
-  mode = newMode;
-  clearError();
-  tabSignIn.classList.toggle('active', mode === 'signin');
-  tabSignUp.classList.toggle('active', mode === 'signup' || mode === 'forgot');
-
-  if (mode === 'signin') {
-    confirmField.style.display = 'none';
-    signupConsent.style.display = 'none';
-    forgotLinkWrap.style.display = 'block';
-    passwordInput.parentElement.style.display = 'block';
-    submitBtn.textContent = 'Sign in';
-    forgotLink.textContent = 'Forgot password?';
-  } else if (mode === 'signup') {
-    confirmField.style.display = 'block';
-    signupConsent.style.display = 'block';
-    forgotLinkWrap.style.display = 'none';
-    passwordInput.parentElement.style.display = 'block';
-    submitBtn.textContent = 'Create account';
-  } else if (mode === 'forgot') {
-    confirmField.style.display = 'none';
-    signupConsent.style.display = 'none';
-    passwordInput.parentElement.style.display = 'none';
-    forgotLinkWrap.style.display = 'block';
-    submitBtn.textContent = 'Send reset link';
-    forgotLink.textContent = 'Back to sign in';
-  }
-}
-
-tabSignIn.addEventListener('click', () => setMode('signin'));
-tabSignUp.addEventListener('click', () => setMode('signup'));
-forgotLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  setMode(mode === 'forgot' ? 'signin' : 'forgot');
-});
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  clearError();
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  if (!email) { showError('Please enter your email.'); return; }
-
-  submitBtn.disabled = true;
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = 'Please wait...';
-
-  try {
-    if (mode === 'signin') {
-      if (!password) { showError('Please enter your password.'); return; }
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        const notConfirmed = /email not confirmed/i.test(error.message);
-        showError(notConfirmed ? 'Please confirm your email before signing in.' : error.message, notConfirmed, email);
-        return;
-      }
-      window.location.href = redirectTarget();
-
-    } else if (mode === 'signup') {
-      if (!password || password.length < 6) { showError('Password must be at least 6 characters.'); return; }
-      if (password !== confirmInput.value) { showError('Passwords do not match.'); return; }
-      const { error } = await supabase.auth.signUp({
-        email, password,
-        options: { emailRedirectTo: cleanUrl('login.html') }
-      });
-      if (error) { showError(error.message); return; }
-      formArea.classList.add('hidden');
-      successBox.classList.remove('hidden');
-      successMsg.textContent = "We've sent a confirmation link to " + email + ". Click it to activate your account, then come back and sign in.";
-      document.getElementById('resend-signup-wrap').classList.remove('hidden');
-      pendingSignupEmail = email;
-
-    } else if (mode === 'forgot') {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: cleanUrl('reset-password.html')
-      });
-      if (error) { showError(error.message); return; }
-      formArea.classList.add('hidden');
-      successBox.classList.remove('hidden');
-      successMsg.textContent = "We've sent a password reset link to " + email + ". Click it to set a new password.";
-      document.getElementById('resend-signup-wrap').classList.add('hidden');
-    }
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
-  }
-});
-
-document.querySelectorAll('.password-toggle-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const input = document.getElementById(btn.dataset.target);
-    const isHidden = input.type === 'password';
-    input.type = isHidden ? 'text' : 'password';
-    btn.textContent = isHidden ? '🙈' : '👁';
+async function sendCode(email) {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true }
   });
-});
+  return error;
+}
 
-document.getElementById('resend-signup-link').addEventListener('click', async (e) => {
+// ── Bước 1: nhập email, gửi mã ──────────────────────────────────────────
+emailForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const link = e.target;
-  link.textContent = 'Sending...';
-  const { error } = await supabase.auth.resend({ type: 'signup', email: pendingSignupEmail });
-  link.textContent = error ? error.message : 'Sent!';
+  clearEmailError();
+  const email = emailInput.value.trim();
+  if (!email) { showEmailError('Please enter your email.'); return; }
+
+  sendCodeBtn.disabled = true;
+  sendCodeBtn.textContent = 'Sending code...';
+
+  const error = await sendCode(email);
+
+  sendCodeBtn.disabled = false;
+  sendCodeBtn.textContent = 'Continue with email';
+
+  if (error) { showEmailError(error.message); return; }
+
+  pendingEmail = email;
+  codeSentEmailEl.textContent = email;
+  codeInput.value = '';
+  clearCodeError();
+  stepEmail.classList.add('hidden');
+  stepCode.classList.remove('hidden');
+  codeInput.focus();
+  resendCooldownUntil = Date.now() + 30_000;
+  startExpiryCountdown();
 });
 
-document.getElementById('already-confirmed-btn').addEventListener('click', () => {
-  const email = emailInput.value.trim();
-  successBox.classList.add('hidden');
-  formArea.classList.remove('hidden');
-  setMode('signin');
-  emailInput.value = email;
-  passwordInput.value = '';
-  passwordInput.focus();
+// ── Bước 2: nhập mã, xác thực ────────────────────────────────────────────
+codeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearCodeError();
+  const code = codeInput.value.trim();
+  if (!/^\d{6,10}$/.test(code)) { showCodeError('Please enter the code from your email.'); return; }
+
+  verifyBtn.disabled = true;
+  verifyBtn.textContent = 'Verifying...';
+
+  const { error } = await supabase.auth.verifyOtp({
+    email: pendingEmail,
+    token: code,
+    type: 'email'
+  });
+
+  verifyBtn.disabled = false;
+  verifyBtn.textContent = 'Verify & sign in';
+
+  if (error) {
+    showCodeError(/expired/i.test(error.message) ? 'This code has expired — please request a new one.' : error.message);
+    return;
+  }
+
+  // Đăng nhập thành công — auth.js sẽ tự bắt sự kiện pcauth:change và chuyển trang
+  window.location.href = redirectTarget();
+});
+
+// ── Gửi lại mã ────────────────────────────────────────────────────────────
+resendLink.addEventListener('click', async (e) => {
+  e.preventDefault();
+  if (Date.now() < resendCooldownUntil) {
+    const wait = Math.ceil((resendCooldownUntil - Date.now()) / 1000);
+    showCodeError(`Please wait ${wait}s before requesting another code.`);
+    return;
+  }
+  clearCodeError();
+  const original = resendLink.textContent;
+  resendLink.textContent = 'Sending...';
+  const error = await sendCode(pendingEmail);
+  resendLink.textContent = original;
+  if (error) { showCodeError(error.message); return; }
+  resendCooldownUntil = Date.now() + 30_000;
+  startExpiryCountdown();
+  codeError.style.color = 'var(--green)';
+  showCodeError('✅ New code sent — check your email.');
+  setTimeout(() => { codeError.style.color = 'var(--red)'; clearCodeError(); }, 4000);
+});
+
+// ── Dùng email khác ───────────────────────────────────────────────────────
+changeEmailLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  clearInterval(expiryTimerInterval);
+  stepCode.classList.add('hidden');
+  stepEmail.classList.remove('hidden');
+  clearCodeError();
+  emailInput.focus();
+});
+
+// Chỉ cho nhập số trong ô mã
+codeInput.addEventListener('input', () => {
+  codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 10);
 });
 
 document.getElementById('login-close-btn').addEventListener('click', () => {
@@ -193,5 +186,3 @@ document.getElementById('google-signin-btn').addEventListener('click', () => {
 document.addEventListener('pcauth:change', (e) => {
   if (e.detail.user) window.location.href = redirectTarget();
 });
-
-setMode('signin');

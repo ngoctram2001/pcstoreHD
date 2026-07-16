@@ -330,6 +330,7 @@ nav {
   border: none; cursor: pointer; transition: opacity .2s; text-decoration: none;
 }
 .primary-btn:hover { opacity: .9; }
+.primary-btn:disabled { opacity: .5; cursor: not-allowed; }
 .secondary-btn {
   width: 100%; padding: 14px; border-radius: 12px;
   background: var(--surface2); color: var(--text); font-size: 14px; font-weight: 600;
@@ -410,6 +411,68 @@ nav {
 .floating-messenger:hover { transform: scale(1.08); }
 .floating-messenger svg { width: 30px; height: 30px; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+/* ============ LIVE CHAT WIDGET (khách <-> shop) ============ */
+.chat-fab {
+  position: fixed; bottom: 96px; right: 24px; z-index: 150;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 6px 24px rgba(232,73,30,.4);
+  transition: transform .2s; padding: 0;
+}
+.chat-fab:hover { transform: scale(1.08); }
+.chat-fab svg { width: 26px; height: 26px; }
+.chat-fab-badge {
+  position: absolute; top: -4px; right: -4px; background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  border: 2px solid var(--bg);
+}
+.chat-panel {
+  position: fixed; bottom: 164px; right: 24px; z-index: 150;
+  width: min(340px, calc(100vw - 32px)); height: min(460px, calc(100vh - 200px));
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.chat-panel.hidden { display: none; }
+.chat-panel-header {
+  background: var(--accent); color: #fff; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.chat-panel-header strong { font-size: 15px; }
+.chat-panel-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; line-height: 1; opacity: .85; }
+.chat-panel-close:hover { opacity: 1; }
+.chat-panel-body {
+  flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.chat-bubble { max-width: 82%; padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; word-wrap: break-word; }
+.chat-bubble.from-user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.chat-bubble.from-admin { align-self: flex-start; background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; }
+.chat-bubble-time { font-size: 10px; opacity: .65; margin-top: 3px; display: block; }
+.chat-panel-empty { text-align: center; color: var(--muted); font-size: 13px; margin: auto; padding: 20px; }
+.chat-panel-login {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px; gap: 14px;
+}
+.chat-panel-login p { color: var(--muted); font-size: 13.5px; }
+.chat-panel-footer { flex-shrink: 0; padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-panel-footer textarea {
+  flex: 1; resize: none; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px;
+  font-family: inherit; font-size: 13.5px; background: var(--surface2); color: var(--text); max-height: 70px;
+}
+.chat-panel-footer textarea:focus { outline: none; border-color: var(--accent); }
+.chat-panel-send {
+  background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0 16px;
+  cursor: pointer; font-size: 14px; flex-shrink: 0; transition: opacity .2s;
+}
+.chat-panel-send:hover { opacity: .9; }
+.chat-panel-send:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 420px) {
+  .chat-panel { right: 16px; bottom: 156px; }
+  .chat-fab { right: 16px; }
+}
 
 /* ============ INFO / BUILD GUIDE PAGE ============ */
 .info-section { padding: 0 24px 64px; max-width: 1100px; margin: 0 auto; }

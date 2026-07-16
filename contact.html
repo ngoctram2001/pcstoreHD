@@ -114,7 +114,11 @@
           <label>Message *</label>
           <textarea id="cf-message" placeholder="What would you like to ask?"></textarea>
         </div>
-        <button class="secondary-btn" id="contact-form-submit">Send message</button>
+        <div class="form-group" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+          <input type="checkbox" id="cf-agree-policy" style="margin-top:3px;width:16px;height:16px;flex-shrink:0">
+          <label for="cf-agree-policy" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">I agree to JohnnyPC's <a href="privacy.html" target="_blank" style="color:var(--accent2)">Privacy Policy</a></label>
+        </div>
+        <button class="primary-btn" id="contact-form-submit">Send message</button>
       </div>
       <div id="contact-form-success" class="hidden">
         <div style="font-size:36px;margin-bottom:8px">✅</div>
@@ -136,6 +140,8 @@
 
 <script type="module" src="auth.js"></script>
 <script type="module" src="nav-cart.js"></script>
+<script type="module" src="chat-widget.js"></script>
+<script type="module" src="contact.js"></script>
 <script type="module">
 import { MESSENGER_LINK } from './supabase-client.js';
 document.getElementById('floating-messenger-btn').href = MESSENGER_LINK;

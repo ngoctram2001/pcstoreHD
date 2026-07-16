@@ -135,15 +135,39 @@
         <div class="form-group"><label>Email <span style="color:var(--muted);font-weight:400">(optional — to receive your invoice)</span></label><input type="email" id="o-email" placeholder="you@example.com"></div>
         <div class="form-group"><label>Pickup date *</label><select id="o-date"></select></div>
         <div class="form-group"><label>Pickup time *</label><select id="o-time"></select></div>
-        <p class="order-note">&#128205; Local pickup only · Perth, WA</p>
-        <button class="submit-btn" onclick="submitOrder()">&#128230; Confirm order</button>
+        <p class="order-note">&#128205; Local pickup only · Yosemite Loop, Ballajura WA 6066</p>
+        <div class="guest-signin-note" id="o-guest-signin-note" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          💡 Have an account? <a href="#" id="o-guest-signin-link" style="color:var(--accent2);font-weight:600">Sign in</a> to track your orders and receive your invoice automatically.
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+          <input type="checkbox" id="o-agree-policy" style="margin-top:3px;width:16px;height:16px;flex-shrink:0">
+          <label for="o-agree-policy" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">I agree to JohnnyPC's <a href="privacy.html" target="_blank" style="color:var(--accent2)">Privacy Policy</a></label>
+        </div>
+        <button class="submit-btn" onclick="reviewOrder()">&#128230; Confirm order</button>
       </div>
+
+      <div id="booking-confirm-view" class="hidden">
+        <button type="button" onclick="backToForm()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:0;margin-bottom:16px;display:flex;align-items:center;gap:4px">&#8592; Back</button>
+        <div style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px">&#128205; Pickup address</div>
+          <div style="font-size:14px;line-height:1.5">46 Yosemite Loop<br>Ballajura WA 6066</div>
+        </div>
+        <div style="background:#fff8e6;border:1px solid #f0d98c;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#6b5a1e;line-height:1.6">
+          &#9888;&#65039; Once ordered, this build will be held for <strong>1–2 days</strong>. If we don't hear from you or you don't come to pick it up within that time, the order will be cancelled and the build released back to the store.
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+          <input type="checkbox" id="o-agree-address" style="margin-top:3px;width:16px;height:16px;flex-shrink:0">
+          <label for="o-agree-address" style="font-size:13px;color:var(--muted);cursor:pointer;line-height:1.5">I agree, the pickup address above is correct, and I understand the hold policy</label>
+        </div>
+        <button class="submit-btn" onclick="submitOrder()">&#9989; Confirm and place order</button>
+      </div>
+
       <div id="booking-success-view" class="success-box hidden">
         <div class="success-icon">✅</div>
         <h3>Order request received!</h3>
         <p>This build has been reserved for you.</p>
-        <div class="success-note">&#128172; Please message us on Messenger to confirm your pickup address — we'll send you the exact location there.</div>
-        <a id="success-messenger-link" class="primary-btn" href="#" target="_blank">&#128172; Open Messenger to confirm</a>
+        <div class="success-note">&#128172; Feel free to reach out via Messenger anytime — for questions, updates, or just to chat about your build.</div>
+        <a id="success-messenger-link" class="primary-btn" href="#" target="_blank">&#128172; Message us on Messenger</a>
       </div>
     </div>
   </div>
@@ -169,6 +193,7 @@
 
 <script type="module" src="auth.js"></script>
 <script type="module" src="nav-cart.js"></script>
+<script type="module" src="chat-widget.js"></script>
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_KEY, MESSENGER_LINK } from './supabase-client.js';
@@ -281,7 +306,7 @@ function renderProduct(p) {
         <img id="gallery-main-img" src="${escHtml(galleryImages[0])}" alt="${escHtml(p.name)}" onclick="openLightbox(0)">
        </div>
        ${galleryImages.length > 1 ? `<div class="gallery-thumbs">
-         ${galleryImages.map((img,i) => `<div class="gallery-thumb${i===0?' active':''}" onclick="setMainImage(${i})"><img src="${escHtml(img)}" alt=""></div>`).join('')}
+         ${galleryImages.map((img,i) => `<div class="gallery-thumb${i===0?' active':''}" onclick="setMainImage(${i})"><img src="${escHtml(img)}" alt="" loading="lazy"></div>`).join('')}
        </div>` : ''}`
     : `<div class="gallery-main"><div class="img-fallback">&#128421;</div></div>`;
 
@@ -329,7 +354,7 @@ function renderProduct(p) {
           <button onclick="copyProductLink()" style="width:100%;padding:12px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
             🔗 Copy product link
           </button>
-          ${canOrder ? `<p class="order-note">&#128205; Local pickup only · Perth, WA</p>` : ''}
+          ${canOrder ? `<p class="order-note">&#128205; Local pickup only · Yosemite Loop, Ballajura WA 6066</p>` : ''}
         </div>
       </div>
     </div>
@@ -458,10 +483,21 @@ window.openOrderModal = function() {
   dateSelect.onchange = updateTimes;
 
   document.getElementById('booking-form-view').classList.remove('hidden');
+  document.getElementById('booking-confirm-view').classList.add('hidden');
   document.getElementById('booking-success-view').classList.add('hidden');
   document.getElementById('o-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
   document.getElementById('o-phone').value = window.pcAuth?.profile?.phone || '';
   document.getElementById('o-email').value = window.pcAuth?.user?.email || '';
+  const guestNote = document.getElementById('o-guest-signin-note');
+  if (guestNote) {
+    guestNote.style.display = window.pcAuth?.user ? 'none' : 'block';
+    const link = document.getElementById('o-guest-signin-link');
+    if (link) link.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+  }
+  const agreeBox = document.getElementById('o-agree-policy');
+  if (agreeBox) agreeBox.checked = false;
+  const agreeAddressBox = document.getElementById('o-agree-address');
+  if (agreeAddressBox) agreeAddressBox.checked = false;
   document.getElementById('order-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 };
@@ -480,14 +516,30 @@ window.closeModal = function(id) {
   document.body.style.overflow = '';
 };
 
+window.reviewOrder = function() {
+  const name  = document.getElementById('o-name').value.trim();
+  const phone = document.getElementById('o-phone').value.trim();
+  const email = document.getElementById('o-email').value.trim();
+  if (!name || !phone) { alert('Please fill in your name and phone number'); return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address, or leave it blank'); return; }
+  if (!document.getElementById('o-agree-policy')?.checked) { alert("Please agree to the Privacy Policy before placing your order"); return; }
+
+  document.getElementById('booking-form-view').classList.add('hidden');
+  document.getElementById('booking-confirm-view').classList.remove('hidden');
+};
+
+window.backToForm = function() {
+  document.getElementById('booking-confirm-view').classList.add('hidden');
+  document.getElementById('booking-form-view').classList.remove('hidden');
+};
+
 window.submitOrder = async function() {
   const name  = document.getElementById('o-name').value.trim();
   const phone = document.getElementById('o-phone').value.trim();
   const email = document.getElementById('o-email').value.trim();
   const date  = document.getElementById('o-date').value;
   const time  = document.getElementById('o-time').value;
-  if (!name || !phone) { alert('Please fill in your name and phone number'); return; }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address, or leave it blank'); return; }
+  if (!document.getElementById('o-agree-address')?.checked) { alert('Please confirm the pickup address and hold policy before placing your order'); return; }
   if (!currentProduct) return;
 
   const { error } = await supabase.from('orders').insert({
@@ -512,7 +564,7 @@ window.submitOrder = async function() {
     headers: { 'Title': 'Don hang moi!', 'Priority': 'high', 'Tags': 'shopping,bell' },
     body: `Khach: ${name}\nSDT: ${phone}\nSan pham: ${currentProduct.name}\nNgay lay: ${date} luc ${time}`
   }).catch(()=>{});
-  document.getElementById('booking-form-view').classList.add('hidden');
+  document.getElementById('booking-confirm-view').classList.add('hidden');
   document.getElementById('booking-success-view').classList.remove('hidden');
   const btn = document.querySelector('.order-btn-main');
   if (btn) { btn.disabled = true; btn.textContent = 'Reserved'; }

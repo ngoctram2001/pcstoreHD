@@ -3,6 +3,7 @@
 // ============================================================
 
 import { supabase } from './supabase-client.js';
+import { buildInvoiceHtml } from './invoice-template.js';
 
 function escHtml(str) {
   const d = document.createElement('div');
@@ -15,7 +16,38 @@ function formatPrice(n) {
   return Number(n).toLocaleString('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 });
 }
 
-const STATUS_LABEL = { pending: 'Pending', confirmed: 'Confirmed', reserved: 'Pending', cancelled: 'Cancelled' };
+const STATUS_LABEL = { pending: 'Pending', confirmed: 'Confirmed', reserved: 'Pending', done: 'Completed', cancelled: 'Cancelled' };
+
+function formatOrderRow(o, productsMap) {
+  const status = o.status || 'pending';
+  const label = STATUS_LABEL[status] || status;
+  const dateStr = o.pickup_date ? `Pickup ${o.pickup_date}${o.pickup_time ? ' at ' + o.pickup_time : ''}` : '';
+  const invoiceNum = 'INV-' + String(o.id).slice(0, 8).toUpperCase();
+  const prod = productsMap[o.product_id];
+  const price = prod ? (prod.sale_price && prod.sale_price > 0 && prod.sale_price < prod.price ? prod.sale_price : prod.price) : null;
+  const priceStr = price ? formatPrice(price) : '';
+
+  return `<div class="order-row">
+    <div class="order-row-info">
+      <div class="order-row-name">${escHtml(o.product_name || 'Custom PC build')}</div>
+      <div class="order-row-meta">${escHtml(dateStr)}${priceStr ? ' · ' + escHtml(priceStr) : ''}</div>
+      <div class="order-row-meta" style="opacity:.7">Invoice #: ${invoiceNum}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+      <div class="order-row-status ${escHtml(status)}">${escHtml(label)}</div>
+      ${status === 'done'
+        ? `<button class="account-invoice-btn" data-id="${o.id}" type="button" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;white-space:nowrap">🧾 View invoice</button>`
+        : ''}
+    </div>
+  </div>`;
+}
+
+function ordersHtml(orders, productsMap) {
+  if (!orders.length) {
+    return '<div class="orders-empty">No orders yet — once you order a build, it\'ll show up here.</div>';
+  }
+  return orders.map(o => formatOrderRow(o, productsMap)).join('');
+}
 
 function renderSignedOut() {
   document.getElementById('account-page').innerHTML = `
@@ -41,26 +73,19 @@ async function loadOrders(userId) {
   return data || [];
 }
 
-function ordersHtml(orders) {
-  if (!orders.length) {
-    return '<div class="orders-empty">No orders yet — once you order a build, it\'ll show up here.</div>';
-  }
-  return orders.map(o => {
-    const status = o.status || 'pending';
-    const label = STATUS_LABEL[status] || status;
-    const dateStr = o.pickup_date ? `Pickup ${o.pickup_date}${o.pickup_time ? ' at ' + o.pickup_time : ''}` : '';
-    return `<div class="order-row">
-      <div class="order-row-info">
-        <div class="order-row-name">${escHtml(o.product_name || 'Custom PC build')}</div>
-        <div class="order-row-meta">${escHtml(dateStr)}</div>
-      </div>
-      <div class="order-row-status ${escHtml(status)}">${escHtml(label)}</div>
-    </div>`;
-  }).join('');
+async function loadProductsFor(orders) {
+  const ids = [...new Set(orders.map(o => o.product_id).filter(Boolean))];
+  if (!ids.length) return {};
+  const { data, error } = await supabase.from('products').select('*').in('id', ids);
+  if (error) { console.error(error); return {}; }
+  const map = {};
+  (data || []).forEach(p => { map[p.id] = p; });
+  return map;
 }
 
 async function renderSignedIn(user, profile) {
   const orders = await loadOrders(user.id);
+  const productsMap = await loadProductsFor(orders);
   const name = profile?.full_name || user.user_metadata?.full_name || '';
   const avatarUrl = user.user_metadata?.avatar_url;
 
@@ -87,7 +112,7 @@ async function renderSignedIn(user, profile) {
 
     <div class="account-card">
       <h3>Order history</h3>
-      <div id="orders-list">${ordersHtml(orders)}</div>
+      <div id="orders-list">${ordersHtml(orders, productsMap)}</div>
     </div>
 
     <div style="text-align:center">
@@ -123,6 +148,19 @@ async function renderSignedIn(user, profile) {
 
   document.getElementById('acc-signout-btn').onclick = () => window.pcAuth.signOut();
   document.getElementById('acc-delete-btn').onclick = () => showDeleteAccountConfirm(user);
+
+  document.querySelectorAll('.account-invoice-btn').forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.getAttribute('data-id');
+      const order = orders.find(o => String(o.id) === String(id));
+      if (!order) return;
+      const prod = productsMap[order.product_id] || {};
+      const html = buildInvoiceHtml(order, prod);
+      const win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+    };
+  });
 }
 
 // ── Delete account confirm modal ─────────────────────────────────────────

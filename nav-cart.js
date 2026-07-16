@@ -164,7 +164,7 @@ function renderCartList() {
     const img = (p.images && p.images[0]) || p.image_url || '';
     return `<div class="cart-item">
       ${img
-        ? `<img src="${img}" alt="${escHtml(p.name)}" onerror="this.style.display='none'">`
+        ? `<img src="${img}" alt="${escHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="cart-item-img-placeholder">🖥️</div>`}
       <div class="cart-item-info">
         <div class="cart-item-name">${escHtml(p.name)}</div>

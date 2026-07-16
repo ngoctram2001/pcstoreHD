@@ -63,10 +63,11 @@
   .orders-empty { text-align: center; color: var(--muted); padding: 24px 0; font-size: 14px; }
 
   .account-signout-btn {
-    padding: 9px 18px; border-radius: 10px; background: none; border: 1px solid var(--border);
-    color: var(--text); font-size: 13px; font-family: inherit; cursor: pointer;
+    padding: 11px 24px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: all .2s; box-shadow: 0 1px 3px rgba(0,0,0,.04);
   }
-  .account-signout-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .account-signout-btn:hover { border-color: var(--red); color: var(--red); background: rgba(214,48,48,.06); }
 </style>
 </head>
 <body>
@@ -127,6 +128,7 @@
 
 <script type="module" src="auth.js"></script>
 <script type="module" src="nav-cart.js"></script>
+<script type="module" src="chat-widget.js"></script>
 <script type="module" src="account.js"></script>
 <script type="module">
 import { MESSENGER_LINK } from './supabase-client.js';

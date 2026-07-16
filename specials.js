@@ -226,6 +226,7 @@ function openBookingModal() {
   const hasSale = p.sale_price && p.sale_price > 0 && p.sale_price < p.price;
   const effectivePrice = hasSale ? p.sale_price : p.price;
   document.getElementById('booking-form-view').classList.remove('hidden');
+  document.getElementById('booking-confirm-view').classList.add('hidden');
   document.getElementById('booking-success-view').classList.add('hidden');
   document.getElementById('booking-product-preview').innerHTML = `
     ${p.image_url
@@ -241,6 +242,16 @@ function openBookingModal() {
   document.getElementById('b-name').value = window.pcAuth?.profile?.full_name || window.pcAuth?.user?.user_metadata?.full_name || '';
   document.getElementById('b-phone').value = window.pcAuth?.profile?.phone || '';
   document.getElementById('b-email').value = window.pcAuth?.user?.email || '';
+  const guestNote = document.getElementById('b-guest-signin-note');
+  if (guestNote) {
+    guestNote.style.display = window.pcAuth?.user ? 'none' : 'block';
+    const link = document.getElementById('b-guest-signin-link');
+    if (link) link.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+  }
+  const agreeBox = document.getElementById('b-agree-policy');
+  if (agreeBox) agreeBox.checked = false;
+  const agreeAddressBox = document.getElementById('b-agree-address');
+  if (agreeAddressBox) agreeAddressBox.checked = false;
   document.getElementById('phone-group').classList.remove('has-error');
   const dateInput = document.getElementById('b-date');
   const today = new Date().toISOString().split('T')[0];
@@ -257,7 +268,7 @@ document.getElementById('b-date').addEventListener('change', e => {
   select.innerHTML = '<option value="">-- Select a time --</option>' + options.map(t => `<option value="${t}">${t}</option>`).join('');
 });
 
-document.getElementById('booking-submit-btn').addEventListener('click', async () => {
+document.getElementById('booking-review-btn').addEventListener('click', () => {
   const name = document.getElementById('b-name').value.trim();
   const phone = document.getElementById('b-phone').value.trim();
   const email = document.getElementById('b-email').value.trim();
@@ -275,12 +286,33 @@ document.getElementById('booking-submit-btn').addEventListener('click', async ()
     return;
   }
 
+  if (!document.getElementById('b-agree-policy')?.checked) {
+    showToast('Please agree to the Privacy Policy before placing your order', true);
+    return;
+  }
+
   if (!isValidPhone(phone)) {
     phoneGroup.classList.add('has-error');
     showToast('Please enter a valid phone number', true);
     return;
   }
   phoneGroup.classList.remove('has-error');
+
+  document.getElementById('booking-form-view').classList.add('hidden');
+  document.getElementById('booking-confirm-view').classList.remove('hidden');
+});
+
+document.getElementById('booking-submit-btn').addEventListener('click', async () => {
+  const name = document.getElementById('b-name').value.trim();
+  const phone = document.getElementById('b-phone').value.trim();
+  const email = document.getElementById('b-email').value.trim();
+  const date = document.getElementById('b-date').value;
+  const time = document.getElementById('b-time').value;
+
+  if (!document.getElementById('b-agree-address')?.checked) {
+    showToast('Please confirm the pickup address and hold policy before placing your order', true);
+    return;
+  }
 
   const btn = document.getElementById('booking-submit-btn');
   btn.disabled = true;

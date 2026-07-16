@@ -72,6 +72,11 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
     return;
   }
 
+  if (!document.getElementById('cf-agree-policy')?.checked) {
+    showToast('⚠️ Please agree to the Privacy Policy before sending', true);
+    return;
+  }
+
   // Cooldown check
   const now = Date.now();
   if (now - lastMessageSubmit < MESSAGE_COOLDOWN) {
@@ -103,7 +108,10 @@ document.getElementById('contact-form-submit').addEventListener('click', async (
   btn.textContent = 'Send message';
 
   if (error) {
-    showToast('❌ Error: ' + error.message, true);
+    const msg = error.message.includes('RATE_LIMIT')
+      ? '⏳ Bạn vừa gửi tin nhắn gần đây, vui lòng đợi vài phút rồi thử lại.'
+      : '❌ Error: ' + error.message;
+    showToast(msg, true);
     return;
   }
 
